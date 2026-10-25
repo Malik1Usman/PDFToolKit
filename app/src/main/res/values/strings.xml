@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PDF Toolkit</string>
+
+    <!-- Bottom navigation / screen subtitles -->
+    <string name="nav_home">Home</string>
+    <string name="nav_files">Files</string>
+    <string name="nav_scan">Scan</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_logo">PDF Toolkit logo</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_more_options">More options</string>
+    <string name="cd_profile">Profile</string>
+    <string name="cd_voice_input">Voice input</string>
+    <string name="cd_filter_documents">Filter documents</string>
+    <string name="cd_list_view">List view</string>
+    <string name="cd_grid_view">Grid view</string>
+    <string name="cd_document_options">More actions for %1$s</string>
+    <string name="cd_starred">Starred</string>
+
+    <!-- Common -->
+    <string name="pdf_badge">PDF</string>
+    <string name="scan_badge">SCAN</string>
+    <string name="doc_pages_format">%1$d pages</string>
+    <string name="bullet_separator">•</string>
+
+    <!-- Home -->
+    <string name="home_search_hint">Search tools, documents...</string>
+    <string name="home_badge_fast_secure">Fast &amp; Secure</string>
+    <string name="home_hero_title">Select or Scan PDF</string>
+    <string name="home_hero_subtitle">Quickly edit, convert, or combine files directly on your device</string>
+    <string name="home_choose_files">Choose Files</string>
+    <string name="home_camera_scan">Camera Scan</string>
+    <string name="home_frequent_tools">Frequent Tools</string>
+    <string name="home_slide_to_explore">Slide to explore</string>
+    <string name="home_recent_documents">Recent Documents</string>
+    <string name="home_view_all">View All</string>
+    <string name="home_privacy_title" formatted="false">100% Offline &amp; Private Processing</string>
+    <string name="home_privacy_body">All PDF modifications run directly on your hardware. Files never leave this device.</string>
+
+    <!-- Frequent tools -->
+    <string name="tool_merge_pdf">Merge PDF</string>
+    <string name="tool_merge_pdf_desc">Combine files</string>
+    <string name="tool_split_pdf">Split PDF</string>
+    <string name="tool_split_pdf_desc">Extract ranges</string>
+    <string name="tool_compress">Compress</string>
+    <string name="tool_compress_desc">Reduce size</string>
+    <string name="tool_photos_to_pdf">Photos to PDF</string>
+    <string name="tool_photos_to_pdf_desc">JPEG / PNG</string>
+    <string name="tool_pdf_to_image">PDF to Image</string>
+    <string name="tool_pdf_to_image_desc">Export gallery</string>
+    <string name="badge_popular">Popular</string>
+    <string name="badge_compress_percent" formatted="false">-60%</string>
+
+    <!-- Categories -->
+    <string name="cat_organize">Organize PDF</string>
+    <string name="cat_convert">Convert &amp; Extract</string>
+    <string name="cat_security">Security &amp; Branding</string>
+
+    <string name="tool_reorder">Reorder</string>
+    <string name="tool_reorder_desc">Arrange pages</string>
+    <string name="tool_rotate">Rotate</string>
+    <string name="tool_rotate_desc">Turn 90° or 180°</string>
+    <string name="tool_delete_pages">Delete Pages</string>
+    <string name="tool_delete_pages_desc">Remove sheets</string>
+    <string name="tool_batch_merge">Batch Merge</string>
+    <string name="tool_batch_merge_desc">Combine sheets</string>
+    <string name="tool_extract_text">Extract Text</string>
+    <string name="tool_extract_text_desc">On-device OCR</string>
+    <string name="tool_to_word">To Word</string>
+    <string name="tool_to_word_desc">Editable .docx</string>
+    <string name="tool_set_password">Set Password</string>
+    <string name="tool_set_password_desc">AES-256 lock</string>
+    <string name="tool_watermark">Watermark</string>
+    <string name="tool_watermark_desc">Add text/stamp</string>
+
+    <!-- Files -->
+    <string name="files_search_hint">Search documents, text, tags...</string>
+    <string name="files_filter_all">All</string>
+    <string name="files_filter_pdfs">PDFs (%1$d)</string>
+    <string name="files_filter_images">Images (%1$d)</string>
+    <string name="files_filter_processed">Processed (%1$d)</string>
+    <string name="files_filter_starred">Starred</string>
+    <string name="files_storage">Storage</string>
+    <string name="files_storage_path">Device Storage › PDF Toolkit</string>
+    <string name="files_storage_free">%1$s free</string>
+    <string name="files_select">Select</string>
+    <string name="files_items_displayed">%1$d items displayed</string>
+    <string name="files_sort_modified_newest">Modified (Newest)</string>
+    <string name="files_import">Import</string>
+    <string name="tag_compressed">Compressed</string>
+    <string name="tag_merged">Merged</string>
+    <string name="tag_from_images">From Images</string>
+    <string name="tag_split_pdf">Split PDF</string>
+
+    <!-- ===== History screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="history_title">Task History</string>
+    <string name="history_subtitle">%1$d operations performed recently</string>
+    <string name="history_clear">Clear</string>
+    <string name="history_empty">No tasks yet</string>
+
+    <string name="history_filter_all">All Tasks</string>
+    <string name="history_filter_successful">Successful</string>
+    <string name="history_filter_failed">Failed</string>
+    <string name="history_filter_today">Today</string>
+    <string name="history_filter_this_week">This Week</string>
+
+    <string name="history_group_today">Today</string>
+    <string name="history_group_yesterday">Yesterday</string>
+    <string name="history_group_earlier">Earlier This Week</string>
+
+    <string name="history_status_completed">Completed</string>
+    <string name="history_status_failed">Failed</string>
+    <string name="history_open_file">Open File</string>
+    <string name="history_saved_percent">Saved %1$d%%</string>
+    <string name="history_retry_password">Retry with Password</string>
+
+    <string name="history_privacy_title">Private &amp; Local Storage</string>
+    <string name="history_privacy_body">History logs only store local file paths. No documents are uploaded to cloud servers.</string>
+
+    <string name="cd_repeat">Repeat task</string>
+    <string name="cd_share">Share file</string>
+    <string name="cd_dismiss">Dismiss task</string>
+    <!-- ===== Scanner screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="scanner_mode_document">Document</string>
+    <string name="scanner_mode_id_card">ID Card (2-Sided)</string>
+    <string name="scanner_mode_book">Book Spread</string>
+    <string name="scanner_mode_whiteboard">Whiteboard</string>
+    <string name="scanner_mode_qr">QR / Code</string>
+
+    <string name="cd_cancel_scan">Cancel scan</string>
+    <string name="cd_flash">Flash</string>
+    <string name="cd_grid_toggle">Toggle grid</string>
+    <string name="cd_capture_page">Capture page</string>
+
+    <string name="scanner_auto_edge">Auto-\nEdge</string>
+    <string name="scanner_resolution_hd">HD</string>
+    <string name="scanner_resolution_dpi">300\nDPI</string>
+    <string name="scanner_hint_detected">Hold steady • Document detected</string>
+
+    <plurals name="scanner_pages_scanned">
+        <item quantity="one">%1$d Page Scanned</item>
+        <item quantity="other">%1$d Pages Scanned</item>
+    </plurals>
+    <string name="scanner_tray_hint">Tap tray to reorder or crop</string>
+    <string name="scanner_page_short">P.%1$d</string>
+    <string name="scanner_auto_on">Auto: ON</string>
+    <string name="scanner_auto_off">Auto: OFF</string>
+    <string name="scanner_import">Import</string>
+    <string name="scanner_done">Done (%1$d)</string>
+
+    <string name="scanner_filter_title">Default enhancement filter</string>
+    <string name="scanner_fine_tune">Fine Tune</string>
+    <string name="scanner_filter_magic">Magic Color</string>
+    <string name="scanner_filter_bw">Crisp B&amp;W</string>
+    <string name="scanner_filter_gray">Grayscale</string>
+    <string name="scanner_filter_whiteboard">Whiteboard</string>
+    <string name="scanner_filter_original">Original</string>
+
+    <string name="scanner_batch_title">Batch Auto-Process</string>
+    <string name="scanner_batch_desc">OCR Text &amp; Deskew enabled</string>
+    <string name="scanner_save_pdf">Save PDF</string>
+
+    <!-- ===== Settings screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <!-- Pro card -->
+    <string name="settings_pro_badge">PDF Toolkit Pro</string>
+    <string name="settings_pro_save">Save 40%</string>
+    <string name="settings_pro_title">Unleash Full Productivity</string>
+    <string name="settings_pro_body">Batch processing, unlimited compression, high-res OCR &amp; customizable watermarks.</string>
+    <string name="settings_pro_old_price" formatted="false">$4.99/mo</string>
+    <string name="settings_pro_price" formatted="false">$2.99 / month</string>
+    <string name="settings_pro_upgrade">Upgrade</string>
+
+    <!-- Privacy card -->
+    <string name="settings_privacy_title" formatted="false">100% On-Device Processing</string>
+    <string name="settings_privacy_body">Your documents are processed strictly offline in local sandbox. No cloud uploads, telemetry, or remote servers.</string>
+
+    <!-- Sections -->
+    <string name="settings_section_general">General Preferences</string>
+    <string name="settings_section_processing">Processing &amp; Quality</string>
+    <string name="settings_section_storage">Storage &amp; Cache</string>
+    <string name="settings_section_about">About &amp; Community</string>
+
+    <!-- General -->
+    <string name="settings_appearance_title">Appearance &amp; Theme</string>
+    <string name="settings_appearance_value">System default (Light)</string>
+    <string name="settings_output_folder">Default Output Folder</string>
+    <string name="settings_output_folder_value">Documents / PDF Toolkit</string>
+    <string name="settings_change">Change</string>
+    <string name="settings_filename_pattern">Default Filename Pattern</string>
+    <string name="settings_filename_pattern_value" formatted="false">[OriginalName]_[Tool]</string>
+
+    <!-- Processing -->
+    <string name="settings_export_quality">Export Raster Quality</string>
+    <string name="settings_quality_standard">Standard (150 DPI)</string>
+    <string name="settings_quality_high">High Resolution (300 DPI)</string>
+    <string name="settings_quality_ultra">Ultra (600 DPI)</string>
+    <string name="settings_dpi_value">%1$d DPI</string>
+    <string name="settings_auto_compress">Auto-compress Camera Scans</string>
+    <string name="settings_auto_compress_desc">Optimizes images before saving</string>
+    <string name="settings_keep_original">Keep Original Files</string>
+    <string name="settings_keep_original_desc">Never overwrite existing source documents</string>
+
+    <!-- Storage -->
+    <string name="settings_cache_title">Temporary Render Cache</string>
+    <string name="settings_cache_used">%1$s MB currently used</string>
+    <string name="settings_clear_cache">Clear Cache</string>
+    <string name="settings_clear_history">Clear Processing History</string>
+    <string name="settings_clear_history_desc">Erase recent tasks log and export links</string>
+
+    <!-- About -->
+    <string name="settings_privacy_policy">Privacy Policy &amp; Security Architecture</string>
+    <string name="settings_rate">Rate PDF Toolkit</string>
+    <string name="settings_rate_desc">Support development with 5 stars</string>
+    <string name="settings_share">Share with Colleagues</string>
+    <string name="settings_standalone">Standalone Engine</string>
+    <string name="settings_version">Version 2.4.0 • Build 2405 (ARM64-v8a)</string>
+    <string name="settings_crafted">Crafted for privacy-first, on-device document utilities.</string>
+
+    <string name="cd_edit">Edit</string>
+    <string name="cd_open_link">Open link</string>
+
+    <!-- ===== Fine-Tune (Enhance & Filter) screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="fine_top_subtitle">Camera Document Scanner</string>
+    <string name="fine_title">Enhance &amp; Filter</string>
+    <string name="fine_subtitle_page">Page %1$d of %2$d • %3$s</string>
+    <string name="fine_compare">Compare</string>
+    <string name="cd_fine_close">Close enhancements</string>
+    <string name="cd_fine_reset">Reset enhancements</string>
+
+    <string name="fine_active_summary">%1$s Active • %2$s Crisp</string>
+    <string name="fine_original_view">Original view • No enhancements</string>
+    <string name="fine_paper_dpi">A4 • 300 DPI</string>
+    <string name="fine_ortho_align">↿ Ortho Align</string>
+    <string name="fine_ortho_angle">90.0°</string>
+    <string name="fine_auto_crop">Auto-crop active</string>
+    <string name="fine_shadows_removed">Shadows Removed: %1$d%% confidence</string>
+    <string name="fine_rotate">Rotate</string>
+    <string name="fine_inspect">Inspect</string>
+
+    <string name="fine_presets_title">Enhancement Presets</string>
+    <string name="fine_presets_available">%1$d Available</string>
+    <string name="fine_preset_magic">Magic Color</string>
+    <string name="fine_preset_magic_desc">Vibrant text &amp; pure white</string>
+    <string name="fine_preset_bw">Crisp B&amp;W</string>
+    <string name="fine_preset_bw_desc">Binary high text punch</string>
+    <string name="fine_preset_gray">Grayscale</string>
+    <string name="fine_preset_gray_desc">Smooth forms &amp; charts</string>
+    <string name="fine_preset_whiteboard">Whiteboard</string>
+    <string name="fine_preset_whiteboard_desc">Zero glare markers</string>
+    <string name="fine_preset_original">Original</string>
+    <string name="fine_preset_original_desc">Unprocessed scan</string>
+
+    <string name="fine_manual_title">Manual Fine-Tuning</string>
+    <string name="fine_ai_calibrated">AI Calibrated</string>
+    <string name="fine_contrast">Contrast &amp; Text Sharpness</string>
+    <string name="fine_contrast_min">Soft</string>
+    <string name="fine_contrast_max">Crisp Punch</string>
+    <string name="fine_brightness">Paper Brightness &amp; White Level</string>
+    <string name="fine_brightness_min">Natural</string>
+    <string name="fine_brightness_max">Clean Bleached</string>
+    <string name="fine_shadow">Crease &amp; Shadow Removal</string>
+    <string name="fine_shadow_auto">%1$d%% (Auto)</string>
+    <string name="fine_shadow_min">Keep Folds</string>
+    <string name="fine_shadow_max">Aggressive Flatten</string>
+    <string name="fine_color">Color Balance / Saturation</string>
+    <string name="fine_color_neutral">Neutral 0</string>
+    <string name="fine_color_warm">Warm +%1$d</string>
+    <string name="fine_color_cool">Cool %1$d</string>
+    <string name="fine_color_min">Cool Blue</string>
+    <string name="fine_color_max">Warm Amber</string>
+
+    <string name="fine_smart_title">Smart Corrections</string>
+    <string name="fine_engine">Edge Engine v4</string>
+    <string name="fine_deskew_title">Auto-Deskew Text Lines</string>
+    <string name="fine_deskew_desc">Rotates angled captures by ±2.4°</string>
+    <string name="fine_fingers_title">Erase Finger Tips &amp; Margins</string>
+    <string name="fine_fingers_desc">Inpaints thumb edges holding paper</string>
+    <string name="fine_ink_title">Deep Black Ink Enhancement</string>
+    <string name="fine_ink_desc">Darkens faded pen and dot-matrix receipts</string>
+
+    <string name="fine_apply_page">Apply to Page %1$d</string>
+    <string name="fine_apply_all">Apply All (%1$d)</string>
+    <!-- ===== Batch Review screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <!-- (fine_preset_magic / fine_preset_bw strings_finetune.xml se aate hain) -->
+    <string name="batch_title">Batch Scanned Pages</string>
+    <string name="batch_subtitle">Drag card handle to reorder, tap to fine-tune</string>
+    <string name="batch_add">Add</string>
+    <string name="batch_clear_all">Clear All</string>
+    <string name="batch_empty">No pages yet. Scan your first page.</string>
+
+    <string name="batch_estimated">Estimated Output</string>
+    <string name="batch_estimate_value">%1$d pages • ~%2$s MB (High Res)</string>
+    <string name="batch_ready">Ready</string>
+    <string name="batch_chip_autocrop">Auto-Crop All</string>
+    <string name="batch_chip_rotate">Rotate All 90°</string>
+    <string name="batch_chip_select_all">Select All</string>
+
+    <string name="batch_page_title">Page %1$d</string>
+    <string name="batch_page_dim">A4 (2480 × 3508)</string>
+    <string name="batch_edge_adjust">Edge Adjust</string>
+    <string name="batch_retake">Retake</string>
+    <string name="cd_drag_handle">Drag to reorder</string>
+    <string name="cd_page_selected">Page selected</string>
+    <string name="cd_rotate_page">Rotate page</string>
+    <string name="cd_delete_page">Delete page</string>
+
+    <string name="batch_scan_next">Scan Next Page</string>
+    <string name="batch_scan_next_desc">Tap to capture Page %1$d from camera or gallery</string>
+
+    <string name="batch_export_title">PDF Export Settings</string>
+    <string name="batch_filename_label">Document File Name</string>
+    <string name="cd_edit_filename">Edit file name</string>
+    <string name="batch_page_size">Page Size</string>
+    <string name="batch_quality">Quality Profile</string>
+    <string name="batch_size_a4">A4 (Standard)</string>
+    <string name="batch_size_letter">US Letter</string>
+    <string name="batch_size_legal">US Legal</string>
+    <string name="batch_size_original">Original Size</string>
+    <string name="batch_quality_compact">150 DPI Compact</string>
+    <string name="batch_quality_balanced">300 DPI Balanced</string>
+    <string name="batch_quality_max">600 DPI Maximum</string>
+    <string name="batch_ocr_title">Searchable OCR Text</string>
+    <string name="batch_ocr_desc">Embed English selectable text layer</string>
+
+    <string name="batch_add_more">Add More</string>
+    <string name="batch_save_pdf">Save PDF (%1$d Pages)</string><!-- ===== Batch Review screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <!-- ===== Merge PDF screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="merge_title">Merge PDF</string>
+    <string name="merge_ready">Ready</string>
+    <string name="merge_not_ready">Add more</string>
+    <string name="merge_step">Step 1 of 2: Arrange &amp; Configure</string>
+    <string name="cd_back">Go back</string>
+    <string name="cd_add_files">Add files</string>
+
+    <string name="merge_stat_files">Files</string>
+    <string name="merge_stat_pages">Pages</string>
+    <string name="merge_stat_output">Output</string>
+    <plurals name="merge_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="merge_pages_total">%1$d total</string>
+    <string name="merge_output_size">~%1$s MB</string>
+    <string name="merge_sort_az">Sort A-Z</string>
+    <string name="merge_sort_date">Date</string>
+    <string name="merge_clear_all">Clear All</string>
+
+    <string name="merge_order_header">Merge Order</string>
+    <string name="merge_hold_drag">Hold &amp; Drag</string>
+    <string name="merge_tag_pdf">PDF</string>
+    <string name="merge_tag_sign">SIGN</string>
+    <string name="merge_file_size">%1$s MB</string>
+    <string name="merge_all_pages">All %1$d pages</string>
+    <string name="merge_page_range">Pages %1$d-%2$d (%3$d pgs)</string>
+    <string name="merge_select_pages">Select Pages</string>
+    <string name="cd_remove_file">Remove %1$s</string>
+    <string name="cd_reorder_file">Reorder %1$s</string>
+
+    <string name="merge_add_docs_title">Add more documents</string>
+    <string name="merge_add_docs_desc">Tap to append pages</string>
+    <string name="merge_source_device">Device</string>
+    <string name="merge_source_drive">Drive</string>
+
+    <string name="merge_options_title">Merge Options</string>
+    <string name="merge_output_name_label">Output Document Name</string>
+    <string name="merge_pdf_ext">.pdf</string>
+    <string name="merge_remove_blank">Remove Blank Pages</string>
+    <string name="merge_remove_blank_desc">Automatically skips empty scanner sheets</string>
+    <string name="merge_normalize">Normalize to A4 Format</string>
+    <string name="merge_normalize_desc">Unifies mixed scan and letter canvas sizes</string>
+    <string name="merge_bookmarks">Generate Bookmarks</string>
+    <string name="merge_bookmarks_desc">Creates chapters from original document titles</string>
+
+    <string name="merge_preview">Preview</string>
+    <string name="merge_action">Merge %1$d PDFs (%2$d Pages)</string>
+    <string name="merge_need_two">Add at least 2 PDFs to merge</string>
+
+    <string name="merge_dialog_title">Select Pages</string>
+    <string name="merge_dialog_hint">%1$s has %2$d pages</string>
+    <string name="merge_dialog_from">From</string>
+    <string name="merge_dialog_to">To</string>
+    <string name="merge_dialog_error">Enter a valid range between 1 and %1$d</string>
+    <string name="merge_dialog_all">Use all pages</string>
+    <string name="merge_dialog_apply">Apply</string>
+    <string name="merge_dialog_cancel">Cancel</string>
+
+    <!-- ===== Compress PDF screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <!-- (cd_back strings_merge.xml mein hai; bullet_separator strings.xml mein) -->
+    <string name="compress_title">Compress PDF</string>
+    <string name="compress_ready">Ready</string>
+    <string name="compress_subtitle">Optimize &amp; reduce file size</string>
+    <string name="cd_compress_help">Compression presets guide</string>
+
+    <!-- Source card -->
+    <string name="compress_change">Change</string>
+    <string name="compress_pdf_version">PDF 1.7</string>
+    <string name="compress_pages">%1$d pages</string>
+    <string name="compress_size_mb">%1$s MB</string>
+    <string name="compress_highres_note">High-res 300 DPI scans embedded</string>
+
+    <!-- Savings gauge -->
+    <string name="compress_projected">Projected Reduction</string>
+    <string name="compress_eta">~%1$ss on-device processing</string>
+    <string name="compress_reduction_badge">-%1$d%% (-%2$s MB)</string>
+    <string name="compress_footprint">Final footprint: </string>
+    <string name="compress_reclaimed">Reclaimed space: </string>
+    <string name="compress_percent">%1$d%%</string>
+
+    <!-- Presets -->
+    <string name="compress_profile_title">Select Compression Profile</string>
+    <string name="compress_profile_hint">Presets adapt DPI &amp; assets</string>
+    <string name="compress_preset_extreme">Extreme Compression</string>
+    <string name="compress_preset_extreme_desc">72 DPI downsample • Flatten graphics • Stripped glyphs</string>
+    <string name="compress_preset_recommended">Recommended</string>
+    <string name="compress_preset_recommended_desc">150 DPI balanced • Crisp typography &amp; optimized photos</string>
+    <string name="compress_preset_basic">Basic Compression</string>
+    <string name="compress_preset_basic_desc">220 DPI • High fidelity retained • Lossless text</string>
+    <string name="compress_tag_web">Web/Email</string>
+    <string name="compress_tag_popular">Popular</string>
+    <string name="compress_tag_print">Print-ready</string>
+    <string name="compress_preset_estimate">~%1$s MB</string>
+    <string name="compress_preset_reduction">-%1$d%%</string>
+
+    <!-- Custom engine rules -->
+    <string name="compress_advanced_title">Custom Engine Rules</string>
+    <string name="compress_active_count">%1$d Active</string>
+    <string name="compress_downsample">Downsample Scans &amp; Graphics</string>
+    <string name="compress_downsample_desc">Cap embedded bitmap resolution</string>
+    <string name="compress_dpi_value">%1$d DPI</string>
+    <string name="compress_strip">Strip Hidden Metadata</string>
+    <string name="compress_strip_desc">Prunes revision history, GPS &amp; author signatures</string>
+    <string name="compress_fonts">Compress Font Subsets</string>
+    <string name="compress_fonts_desc">Eliminates unused glyphs &amp; duplicate CMap tables</string>
+    <string name="compress_gray">Convert Color to Grayscale</string>
+    <string name="compress_gray_desc">Converts all 24-bit color artwork to 8-bit mono</string>
+
+    <!-- Destination + actions -->
+    <string name="compress_destination">Destination File</string>
+    <string name="cd_edit_output_name">Edit file name</string>
+    <string name="compress_preview">Preview</string>
+    <string name="compress_action">Compress (Save %1$s MB)</string>
+</resources>
