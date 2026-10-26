@@ -443,4 +443,62 @@
     <string name="cd_edit_output_name">Edit file name</string>
     <string name="compress_preview">Preview</string>
     <string name="compress_action">Compress (Save %1$s MB)</string>
+<!--    <string name="split_mode_extract">Extract Pages</string>-->
+<!--    <string name="split_mode_range">By Range</string>-->
+<!--    <string name="split_mode_every">Every Page</string>-->
+<!--    <string name="split_chip_select_all">Select All</string>-->
+<!--    <string name="split_chip_deselect">Deselect</string>-->
+<!--    <string name="split_chip_even">Even</string>-->
+<!--    <string name="split_chip_odd">Odd</string>-->
+<!--    <string name="split_chip_first5">First</string>-->
+<!--    <string name="split_title">Split PDF</string>-->
+<!--    <string name="split_ready">Ready</string>-->
+<!--    <string name="split_subtitle">Step 2 of 2 • Configure slices</string>-->
+<!--    <string name="cd_split_help">help</string>-->
+    <!-- ===== Split PDF screen: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <!-- (cd_back strings_merge.xml mein, cd_grid_view / cd_list_view / bullet_separator strings.xml mein, compress_size_mb strings_compress.xml mein) -->
+    <string name="split_title">Split PDF</string>
+    <string name="split_ready">Ready</string>
+    <string name="split_subtitle">Step 2 of 2 • Configure slices</string>
+    <string name="cd_split_help">Help and documentation</string>
+
+    <string name="split_change">Change</string>
+    <string name="split_pages_count">%1$d Pages</string>
+
+    <string name="split_method_label">Split Method</string>
+    <string name="split_mode_extract">Extract Pages</string>
+    <string name="split_mode_range">By Range</string>
+    <string name="split_mode_every">Every Page</string>
+
+    <string name="split_range_label">Page Range Expression</string>
+    <string name="split_selected_count">Selected: %1$d of %2$d pages</string>
+    <string name="split_range_hint">e.g. 1-4, 8, 12-16</string>
+    <string name="split_range_error">Invalid range. Use pages 1-%1$d, like 1-4, 8, 12-16</string>
+    <string name="cd_clear_range">Clear range expression</string>
+    <string name="split_chip_select_all">Select All</string>
+    <string name="split_chip_deselect">Deselect</string>
+    <string name="split_chip_even">Even (%1$d)</string>
+    <string name="split_chip_odd">Odd (%1$d)</string>
+    <string name="split_chip_first5">First 5</string>
+
+    <string name="split_matrix_title">Page Selector Matrix</string>
+    <string name="split_matrix_hint">(Tap to toggle)</string>
+    <string name="split_page_label">Page %1$d</string>
+    <string name="split_more_pages">+%1$d more</string>
+    <string name="split_tap_inspect">Tap to inspect</string>
+    <string name="split_pages_range">Pages %1$d-%2$d</string>
+    <string name="split_show_fewer">Show fewer pages</string>
+
+    <string name="split_output_prefs">Output Preferences</string>
+    <string name="split_target_filename">Target Filename</string>
+    <string name="cd_edit_split_name">Edit output filename</string>
+    <string name="split_merge_title">Merge extracted pages into 1 PDF</string>
+    <string name="split_merge_desc">Combines %1$d selected pages sequentially</string>
+    <string name="split_zip_title">Save as separate files in a .ZIP</string>
+    <string name="split_zip_desc">Exports %1$d individual single-page documents</string>
+    <string name="split_bookmarks_title">Preserve bookmarks &amp; TOC</string>
+    <string name="split_bookmarks_desc">Retains nested headings of matching pages</string>
+
+    <string name="split_preview">Preview</string>
+    <string name="split_action">Split PDF (%1$d Pages)</string>
 </resources>
