@@ -501,4 +501,39 @@
 
     <string name="split_preview">Preview</string>
     <string name="split_action">Split PDF (%1$d Pages)</string>
+    <!-- ===== Native engine: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="tool_working_merge">Merging PDFs…</string>
+    <string name="tool_working_split">Splitting PDF…</string>
+    <string name="tool_working_compress">Compressing PDF…</string>
+    <string name="tool_cancel">Cancel</string>
+    <string name="tool_done_title">Done</string>
+    <string name="tool_saved_as">Saved as %1$s (%2$s)</string>
+    <string name="tool_open">Open</string>
+    <string name="tool_share">Share</string>
+    <string name="tool_close">Close</string>
+    <string name="tool_failed_title">Something went wrong</string>
+    <string name="tool_ok">OK</string>
+    <string name="err_password">This PDF is password protected.</string>
+    <string name="err_memory">This file is too large to process on this device.</string>
+    <string name="err_generic">Couldn\'t complete the task: %1$s</string>
+    <string name="err_unreadable">Couldn\'t read this PDF. It may be corrupted or password protected.</string>
+    <string name="err_unreadable_named">Couldn\'t read %1$s. It may be corrupted or password protected.</string>
+    <!-- ===== Scan flow: ye lines apni strings.xml ke <resources> ke andar paste karo ===== -->
+    <string name="scanner_hint_searching">Point the camera at a document</string>
+    <string name="scanner_hint_id_back">Now scan the back side</string>
+    <string name="tool_working_scan">Creating PDF…</string>
+    <string name="err_no_pages">Scan at least one page first</string>
+    <string name="err_camera">Camera error: %1$s</string>
+    <string name="perm_camera_title">Camera access needed</string>
+    <string name="perm_camera_body">Allow camera access to scan documents. You can also import photos or PDFs.</string>
+    <string name="perm_camera_button">Allow camera</string>
+
+    <string name="crop_title">Adjust Edges</string>
+    <string name="crop_hint">Drag the corners to fit the document</string>
+    <string name="crop_not_found">Couldn\'t detect edges. Adjust manually.</string>
+    <string name="crop_reset">Reset</string>
+    <string name="crop_auto">Auto detect</string>
+    <string name="crop_full">Full page</string>
+    <string name="crop_apply">Apply</string>
+    <string name="crop_enhance">Apply &amp; Filters</string>
 </resources>

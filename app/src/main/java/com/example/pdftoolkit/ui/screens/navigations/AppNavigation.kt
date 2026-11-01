@@ -21,6 +21,28 @@ import com.example.pdftoolkit.ui.screens.compresspdfscreen.CompressPdfScreen
 import com.example.pdftoolkit.ui.screens.mergepdfscreen.MergePdfScreen
 
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pdftoolkit.core.pdf.OutputActions
+import com.example.pdftoolkit.ui.screens.components.ToolStateHost
+import com.example.pdftoolkit.ui.screens.compresspdfscreen.CompressViewModel
+import com.example.pdftoolkit.ui.screens.mergepdfscreen.MergeViewModel
+import com.example.pdftoolkit.ui.screens.splitpdfscreen.SplitPdfScreen
+import com.example.pdftoolkit.ui.screens.splitpdfscreen.SplitViewModel
+
+private val PDF_MIME = arrayOf("application/pdf")
+
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -36,12 +58,13 @@ fun AppNavigation(
             HomeScreen(
                 contentPadding = contentPadding,
                 onChooseFiles = { /* TODO: open file picker */ },
-                onCameraScan = { navController.navigateToScan() },   // Home ka "Camera Scan" button
+                onCameraScan = { navController.navigateToScan() },
                 onToolClick = { titleRes ->
                     val route = when (titleRes) {
                         R.string.tool_merge_pdf, R.string.tool_batch_merge -> Screen.MergePdf.route
                         R.string.tool_compress -> Screen.CompressPdf.route
-                        else -> null   // baaki tools ki screens abhi nahi bani
+                        R.string.tool_split_pdf -> Screen.SplitPdf.route
+                        else -> null   // baaki tools agli slices mein
                     }
                     if (route != null) navController.navigate(route) { launchSingleTop = true }
                 },
@@ -52,7 +75,6 @@ fun AppNavigation(
             FilesScreen(contentPadding = contentPadding)
         }
         composable(Screen.Scan.route) {
-            // Bottom nav bar is route pe MainScreen mein hide hota hai
             ScannerScreen(
                 contentPadding = contentPadding,
                 onClose = { navController.popBackStack() },
@@ -60,54 +82,172 @@ fun AppNavigation(
                 onFineTuneClick = { navController.navigate(Screen.FineTune.route) { launchSingleTop = true } }
             )
         }
-        composable(Screen.CompressPdf.route) {
-            // Bottom nav bar is route pe bhi hide hota hai
-            CompressPdfScreen(
-                contentPadding = contentPadding,
-                onBack = { navController.popBackStack() },
-                onChangeFile = { /* TODO: file picker */ },
-                onHelp = { /* TODO: presets guide bottom sheet */ },
-                onPreview = { options -> /* TODO: compressed sample preview */ },
-                onCompress = { options ->
-                    // TODO: options.preset / imageDpi / toggles ke saath PDF compress karo
-                    navController.navigateToTopLevel(Screen.Files)
-                }
-            )
-        }
+
+        /* ----------------------------- MERGE ----------------------------- */
         composable(Screen.MergePdf.route) {
-            // Bottom nav bar is route pe bhi hide hota hai
-            MergePdfScreen(
-                contentPadding = contentPadding,
-                onBack = { navController.popBackStack() },
-                onAddFromDevice = { /* TODO: file picker (ActivityResultContracts.OpenMultipleDocuments) */ },
-                onAddFromDrive = { /* TODO: Drive picker */ },
-                onPreview = { options -> /* TODO: merged PDF ka preview */ },
-                onMerge = { options ->
-                    // TODO: options.files ko order mein merge karo (page ranges ke saath)
-                    navController.navigateToTopLevel(Screen.Files)
+            val vm: MergeViewModel = viewModel()
+            val state by vm.state.collectAsState()
+            val context = LocalContext.current
+
+            val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+                if (uris.isNotEmpty()) vm.addFiles(uris)
+                else if (vm.files.isEmpty()) navController.popBackStack()
+            }
+            var asked by rememberSaveable { mutableStateOf(false) }
+            LaunchedEffect(Unit) {
+                if (!asked && vm.files.isEmpty()) {
+                    asked = true
+                    picker.launch(PDF_MIME)        // tool khulte hi file picker
                 }
-            )
+            }
+
+            Box(Modifier.fillMaxSize()) {
+                MergePdfScreen(
+                    files = vm.files,
+                    contentPadding = contentPadding,
+                    onBack = { navController.popBackStack() },
+                    onAddFromDevice = { picker.launch(PDF_MIME) },
+                    onAddFromDrive = { picker.launch(PDF_MIME) },   // system picker mein Drive bhi aata hai
+                    onPreview = { options -> vm.merge(options) },   // abhi: output banao + Open dialog
+                    onMerge = { options -> vm.merge(options) }
+                )
+                ToolStateHost(
+                    state = state,
+                    onCancel = vm::cancel,
+                    onDismiss = vm::dismissState,
+                    onOpen = { OutputActions.open(context, it) },
+                    onShare = { OutputActions.share(context, it) },
+                    onDone = {
+                        vm.dismissState()
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
+
+        /* ----------------------------- COMPRESS ----------------------------- */
+        composable(Screen.CompressPdf.route) {
+            val vm: CompressViewModel = viewModel()
+            val state by vm.state.collectAsState()
+            val source by vm.source.collectAsState()
+            val context = LocalContext.current
+
+            val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) vm.setSource(uri)
+                else if (vm.source.value == null) navController.popBackStack()
+            }
+            var asked by rememberSaveable { mutableStateOf(false) }
+            LaunchedEffect(Unit) {
+                if (!asked && vm.source.value == null) {
+                    asked = true
+                    picker.launch(PDF_MIME)
+                }
+            }
+
+            Box(Modifier.fillMaxSize()) {
+                source?.let { src ->
+                    key(src.uri) {
+                        CompressPdfScreen(
+                            contentPadding = contentPadding,
+                            sourceName = src.displayName,
+                            sourceSizeMb = (src.sizeBytes / 1_048_576f).coerceAtLeast(0.01f),
+                            pageCount = src.pageCount,
+                            hasHighResScans = false,
+                            onBack = { navController.popBackStack() },
+                            onChangeFile = { picker.launch(PDF_MIME) },
+                            onPreview = { options -> vm.compress(options) },
+                            onCompress = { options -> vm.compress(options) }
+                        )
+                    }
+                }
+                ToolStateHost(
+                    state = state,
+                    onCancel = vm::cancel,
+                    onDismiss = {
+                        vm.dismissState()
+                        if (vm.source.value == null) navController.popBackStack()   // unreadable file
+                    },
+                    onOpen = { OutputActions.open(context, it) },
+                    onShare = { OutputActions.share(context, it) },
+                    onDone = {
+                        vm.dismissState()
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+        /* ----------------------------- SPLIT ----------------------------- */
+        composable(Screen.SplitPdf.route) {
+            val vm: SplitViewModel = viewModel()
+            val state by vm.state.collectAsState()
+            val source by vm.source.collectAsState()
+            val context = LocalContext.current
+
+            val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) vm.setSource(uri)
+                else if (vm.source.value == null) navController.popBackStack()
+            }
+            var asked by rememberSaveable { mutableStateOf(false) }
+            LaunchedEffect(Unit) {
+                if (!asked && vm.source.value == null) {
+                    asked = true
+                    picker.launch(PDF_MIME)
+                }
+            }
+
+            Box(Modifier.fillMaxSize()) {
+                source?.let { src ->
+                    key(src.uri) {
+                        SplitPdfScreen(
+                            contentPadding = contentPadding,
+                            sourceName = src.displayName,
+                            sourceSizeMb = (src.sizeBytes / 1_048_576f).coerceAtLeast(0.01f),
+                            pageCount = src.pageCount,
+                            initialOutputName = src.displayName.removeSuffix(".pdf") + "_Extract_Pages.pdf",
+                            onBack = { navController.popBackStack() },
+                            onChangeFile = { picker.launch(PDF_MIME) },
+                            onPreview = { options -> vm.split(options) },
+                            onSplit = { options -> vm.split(options) }
+                        )
+                    }
+                }
+                ToolStateHost(
+                    state = state,
+                    onCancel = vm::cancel,
+                    onDismiss = {
+                        vm.dismissState()
+                        if (vm.source.value == null) navController.popBackStack()
+                    },
+                    onOpen = { OutputActions.open(context, it) },
+                    onShare = { OutputActions.share(context, it) },
+                    onDone = {
+                        vm.dismissState()
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+        /* ----------------------------- SCANNER FLOW (agli slice mein real) ----------------------------- */
         composable(Screen.BatchReview.route) {
-            // Bottom nav bar is route pe bhi hide hota hai
             BatchReviewScreen(
                 contentPadding = contentPadding,
-                onAddMore = { navController.popBackStack() },           // wapas Scanner
+                onAddMore = { navController.popBackStack() },
                 onPageClick = { navController.navigate(Screen.FineTune.route) { launchSingleTop = true } },
-                onRetake = { navController.popBackStack() },            // TODO: sirf us page ko retake
+                onRetake = { navController.popBackStack() },
                 onSavePdf = { options ->
-                    // TODO: options se PDF generate karo (fileName, pageSize, quality, OCR, pages)
+                    // TODO (slice: Scanner): options se PDF generate karo
                     navController.navigateToTopLevel(Screen.Files)
                 }
             )
         }
         composable(Screen.FineTune.route) {
-            // Bottom nav bar is route pe bhi hide hota hai
             FineTuneScreen(
                 contentPadding = contentPadding,
                 onClose = { navController.popBackStack() },
-                onApplyToPage = { /* TODO: sirf current page pe apply */ navController.popBackStack() },
-                onApplyToAll = { /* TODO: saare pages pe apply */ navController.popBackStack() }
+                onApplyToPage = { navController.popBackStack() },
+                onApplyToAll = { navController.popBackStack() }
             )
         }
         composable(Screen.History.route) { HistoryScreen(contentPadding) }

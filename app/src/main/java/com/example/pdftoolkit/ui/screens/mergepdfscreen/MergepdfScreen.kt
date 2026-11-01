@@ -88,7 +88,6 @@ import com.example.pdftoolkit.R
 import com.example.pdftoolkit.ui.theme.AppColors
 import com.example.pdftoolkit.ui.theme.AppTextStyle
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
-import java.util.Collections
 import java.util.Locale
 
 /* ----------------------------- Models ----------------------------- */
@@ -105,7 +104,8 @@ data class MergeFile(
     val totalPages: Int,
     val pageRange: IntRange? = null,       // null = saare pages
     val tag: MergeDocTag = MergeDocTag.PDF,
-    val modifiedMillis: Long = 0L
+    val modifiedMillis: Long = 0L,
+    val uri: android.net.Uri? = null         // picker se aayi file ka Uri
 ) {
     val usedPages: Int get() = pageRange?.let { it.last - it.first + 1 } ?: totalPages
 }
@@ -117,12 +117,6 @@ data class MergeOptions(
     val removeBlankPages: Boolean,
     val normalizeToA4: Boolean,
     val generateBookmarks: Boolean
-)
-
-private val sampleMergeFiles = listOf(
-    MergeFile(1, "Annual_Financial_Report_2024.pdf", 18.2f, 28, null, MergeDocTag.PDF, 3L),
-    MergeFile(2, "Executive_Summary_Signed.pdf", 2.1f, 12, 1..4, MergeDocTag.SIGN, 2L),
-    MergeFile(3, "Appendix_Disclosures_Q3.pdf", 4.2f, 20, 1..14, MergeDocTag.PDF, 1L)
 )
 
 private val ScreenPadding = 16.dp
@@ -138,7 +132,7 @@ private val ItemGap = 10.dp
 fun MergePdfScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    initialFiles: List<MergeFile> = sampleMergeFiles,
+    files: androidx.compose.runtime.snapshots.SnapshotStateList<MergeFile>,
     initialOutputName: String = "Merged_Financial_Report_2024",
     onBack: () -> Unit = {},
     onAddFromDevice: () -> Unit = {},
@@ -146,7 +140,6 @@ fun MergePdfScreen(
     onPreview: (MergeOptions) -> Unit = {},
     onMerge: (MergeOptions) -> Unit = {}
 ) {
-    val files = remember { mutableStateListOf<MergeFile>().apply { addAll(initialFiles) } }
     var outputName by remember { mutableStateOf(initialOutputName) }
     var removeBlank by remember { mutableStateOf(true) }
     var normalizeA4 by remember { mutableStateOf(false) }
@@ -245,10 +238,10 @@ fun MergePdfScreen(
                                 val idx = files.indexOfFirst { it.id == draggingId }
                                 if (step > 0f && idx >= 0) {
                                     if (dragOffset > step / 2 && idx < files.lastIndex) {
-                                        Collections.swap(files, idx, idx + 1)
+                                        java.util.Collections.swap(files, idx, idx + 1)
                                         dragOffset -= step
                                     } else if (dragOffset < -step / 2 && idx > 0) {
-                                        Collections.swap(files, idx, idx - 1)
+                                        java.util.Collections.swap(files, idx, idx - 1)
                                         dragOffset += step
                                     }
                                 }
@@ -1052,5 +1045,10 @@ private fun PageRangeDialog(
 @Preview(showBackground = true, widthDp = 390, heightDp = 1000)
 @Composable
 private fun MergePdfScreenPreview() {
-    PdfToolkitTheme { MergePdfScreen(contentPadding = PaddingValues(0.dp)) }
+    PdfToolkitTheme {
+        MergePdfScreen(
+            files = remember { mutableStateListOf<MergeFile>() },
+            contentPadding = PaddingValues(0.dp)
+        )
+    }
 }
