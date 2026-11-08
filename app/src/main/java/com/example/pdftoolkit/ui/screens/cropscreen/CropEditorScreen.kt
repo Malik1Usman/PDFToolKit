@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CropFree
@@ -109,7 +110,7 @@ fun CropEditorScreen(
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(44.dp)) {
                 Icon(
-                    Icons.Outlined.ArrowBack,
+                    Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = stringResource(R.string.cd_back),
                     tint = AppColors.TextPrimary,
                     modifier = Modifier.size(20.dp)
@@ -209,11 +210,11 @@ fun CropEditorScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            QuickAction(Icons.Outlined.RestartAlt, R.string.crop_reset, Modifier.weight(1f)) {
+            QuickAction(Icons.Outlined.RestartAlt, R.string.crop_reset) {
                 quad = initialQuad
                 notFound = false
             }
-            QuickAction(Icons.Outlined.AutoFixHigh, R.string.crop_auto, Modifier.weight(1f)) {
+            QuickAction(Icons.Outlined.AutoFixHigh, R.string.crop_auto) {
                 if (!detecting) {
                     detecting = true
                     scope.launch {
@@ -228,7 +229,7 @@ fun CropEditorScreen(
                     }
                 }
             }
-            QuickAction(Icons.Outlined.CropFree, R.string.crop_full, Modifier.weight(1f)) {
+            QuickAction(Icons.Outlined.CropFree, R.string.crop_full) {
                 quad = Quad.fullFrame(0f)
                 notFound = false
             }
@@ -284,9 +285,10 @@ fun CropEditorScreen(
 }
 
 @Composable
-private fun QuickAction(icon: ImageVector, label: Int, modifier: Modifier, onClick: () -> Unit) {
+private fun RowScope.QuickAction(icon: ImageVector, label: Int, onClick: () -> Unit) {
     Row(
-        modifier = modifier
+        modifier = Modifier
+            .weight(1f)
             .height(40.dp)
             .clip(CircleShape)
             .background(AppColors.SurfaceSoft)

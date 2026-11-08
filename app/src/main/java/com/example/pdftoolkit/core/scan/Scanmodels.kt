@@ -1,5 +1,8 @@
 package com.example.pdftoolkit.core.scan
 
+import androidx.annotation.StringRes
+import com.example.pdftoolkit.R
+
 /** Normalized point: x, y in 0..1 (image ke width / height ke hisab se). */
 data class NPoint(val x: Float, val y: Float)
 
@@ -20,6 +23,14 @@ data class Quad(val tl: NPoint, val tr: NPoint, val br: NPoint, val bl: NPoint) 
             NPoint(1f - inset, 1f - inset), NPoint(inset, 1f - inset)
         )
     }
+}
+
+enum class CaptureMode(@get:StringRes val label: Int) {
+    DOCUMENT(R.string.scanner_mode_document),
+    ID_CARD(R.string.scanner_mode_id_card),
+    BOOK(R.string.scanner_mode_book),
+    WHITEBOARD(R.string.scanner_mode_whiteboard),
+    QR(R.string.scanner_mode_qr)
 }
 
 enum class ScanFilter { MAGIC, BW, GRAYSCALE, WHITEBOARD, ORIGINAL }

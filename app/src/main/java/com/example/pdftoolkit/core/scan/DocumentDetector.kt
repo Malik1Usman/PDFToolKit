@@ -1,11 +1,9 @@
 package com.example.pdftoolkit.core.scan
 
 import android.graphics.Bitmap
-import com.google.ai.edge.litert.support.image.ImageProcessor
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.BooleanArray
 
 /**
  * Pure-Kotlin document edge detector (OpenCV ke bina).
@@ -36,11 +34,11 @@ object DocumentDetector {
             val mask = BooleanArray(w * h) { (blur[it] > threshold) != invert }
             val comp = largestComponent(mask, w, h) ?: continue
             val areaFrac = comp.size / (w * h).toFloat()
-            if (areaFrac < 0.12f || areaFrac > 0.95f) continue
+            if (areaFrac !in 0.12f..0.95f) continue
             // background (table / wall) frame ke kinare se chipka hota hai: use reject karo
             if (borderTouch(comp, w, h) > 0.35f) continue
 
-            val pts = extremePoints(comp, w, h)
+            val pts = extremePoints(comp, w)
             val quadArea = polygonArea(pts)
             if (quadArea < 1f) continue
             val fill = (comp.size / quadArea).coerceAtMost(1f)
@@ -49,7 +47,10 @@ object DocumentDetector {
             if (score > bestScore) {
                 bestScore = score
                 best = Quad(
-                    norm(pts[0], w, h), norm(pts[1], w, h), norm(pts[2], w, h), norm(pts[3], w, h)
+                    norm(pts[0], w, h),
+                    norm(pts[1], w, h),
+                    norm(pts[2], w, h),
+                    norm(pts[3], w, h),
                 )
             }
         }
@@ -144,7 +145,7 @@ object DocumentDetector {
     }
 
     /** TL = min(x+y), BR = max(x+y), TR = max(x-y), BL = min(x-y). Returns [TL, TR, BR, BL] in pixels. */
-    private fun extremePoints(comp: IntArray, w: Int, h: Int): List<Pair<Float, Float>> {
+    private fun extremePoints(comp: IntArray, w: Int): List<Pair<Float, Float>> {
         var tl = comp[0]; var br = comp[0]; var tr = comp[0]; var bl = comp[0]
         var minS = Int.MAX_VALUE; var maxS = Int.MIN_VALUE
         var maxD = Int.MIN_VALUE; var minD = Int.MAX_VALUE

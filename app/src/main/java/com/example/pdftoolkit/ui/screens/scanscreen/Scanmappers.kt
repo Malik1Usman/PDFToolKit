@@ -25,6 +25,10 @@ fun EnhanceParams.toSettings() = EnhanceSettings(
     deepInk = deepInk
 )
 
-fun tagFor(filter: ScanFilter): PageFilterTag = PageFilterTag.valueOf(filter.name)
+fun tagFor(filter: ScanFilter): PageFilterTag = try {
+    PageFilterTag.valueOf(filter.name)
+} catch (_: Throwable) {
+    PageFilterTag.MAGIC
+}
 
 fun EnhancePreset.toFilter(): ScanFilter = ScanFilter.valueOf(name)

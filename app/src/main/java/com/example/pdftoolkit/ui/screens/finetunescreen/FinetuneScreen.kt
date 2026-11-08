@@ -1,6 +1,7 @@
 package com.example.pdftoolkit.ui.screens.finetunescreen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,12 +49,14 @@ import androidx.compose.material.icons.outlined.Tonality
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.ZoomIn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,9 +70,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -79,7 +85,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pdftoolkit.R
+import com.example.pdftoolkit.ui.screens.scanscreen.ScanSessionViewModel
+import com.example.pdftoolkit.ui.screens.scanscreen.toParams
 import com.example.pdftoolkit.ui.theme.AppColors
 import com.example.pdftoolkit.ui.theme.AppTextStyle
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
@@ -139,18 +148,33 @@ private val ScreenPadding = 16.dp
 fun FineTuneScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    fileName: String = "MSA-Doc-Signed.pdf",
-    pageIndex: Int = 1,
-    pageCount: Int = 2,
-    shadowConfidence: Int = 94, // AI/OCR engine se aane wala confidence %
+    viewModel: ScanSessionViewModel = viewModel(),
     onClose: () -> Unit = {},
-    onApplyToPage: (EnhanceSettings) -> Unit = {},
-    onApplyToAll: (EnhanceSettings) -> Unit = {},
-    preview: @Composable BoxScope.(rotation: Float) -> Unit = { SampleDocumentPreview(it) }
+    onApply: () -> Unit = {}
 ) {
-    var settings by remember { mutableStateOf(EnhanceSettings()) }
+    val pageId = viewModel.editingPageId ?: viewModel.lastPageId()
+    val initialSettings = pageId?.let { viewModel.settingsFor(it) } ?: EnhanceSettings()
+    var settings by remember(initialSettings) { mutableStateOf(initialSettings) }
     var comparing by remember { mutableStateOf(false) }
     var rotation by remember { mutableFloatStateOf(0f) }
+
+    var enhancedBmp by remember { mutableStateOf<ImageBitmap?>(null) }
+    var originalBmp by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(pageId) {
+        if (pageId != null) {
+            originalBmp = viewModel.loadOriginalBitmap(pageId)
+        }
+    }
+
+    LaunchedEffect(pageId, settings) {
+        if (pageId != null) {
+            enhancedBmp = viewModel.renderPreview(pageId, settings.toParams(), 1600, true)
+        }
+    }
+
+    val pageIndex = pageId?.let { viewModel.pages.indexOfFirst { p -> p.id == it } + 1 } ?: 1
+    val pageCount = viewModel.pages.size.coerceAtLeast(1)
 
     Column(
         modifier = modifier
@@ -168,7 +192,7 @@ fun FineTuneScreen(
         ) {
             ContextHeader(
                 title = stringResource(R.string.fine_title),
-                subtitle = stringResource(R.string.fine_subtitle_page, pageIndex, pageCount, fileName),
+                subtitle = stringResource(R.string.fine_subtitle_page, pageIndex, pageCount, "Document"),
                 comparing = comparing,
                 onClose = onClose,
                 onCompareToggle = { comparing = !comparing },
@@ -183,9 +207,25 @@ fun FineTuneScreen(
                 settings = settings,
                 comparing = comparing,
                 rotation = rotation,
-                shadowConfidence = shadowConfidence,
+                shadowConfidence = 94,
                 onRotate = { rotation = (rotation + 90f) % 360f },
-                preview = preview
+                preview = { rot ->
+                    val bmp = if (comparing) originalBmp else enhancedBmp
+                    if (bmp != null) {
+                        Image(
+                            bitmap = bmp,
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .rotate(rot)
+                        )
+                    } else {
+                        Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color.White)
+                        }
+                    }
+                }
             )
 
             PresetShelf(
@@ -201,8 +241,16 @@ fun FineTuneScreen(
         BottomActions(
             pageIndex = pageIndex,
             pageCount = pageCount,
-            onApplyToPage = { onApplyToPage(settings) },
-            onApplyToAll = { onApplyToAll(settings) },
+            onApplyToPage = {
+                if (pageId != null) {
+                    viewModel.updateParams(pageId, settings.toParams())
+                }
+                onApply()
+            },
+            onApplyToAll = {
+                viewModel.applyToAll(settings.toParams())
+                onApply()
+            },
             modifier = Modifier
                 .padding(horizontal = ScreenPadding)
                 .padding(top = 4.dp, bottom = contentPadding.calculateBottomPadding() + 12.dp)

@@ -1,6 +1,7 @@
 package com.example.pdftoolkit.ui.screens.batchreviewscreen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -23,6 +24,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pdftoolkit.ui.screens.scanscreen.ScanSessionViewModel
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -41,6 +45,9 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.DragIndicator
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.FilterBAndW
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.RotateRight
@@ -56,7 +63,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -90,13 +96,16 @@ import java.util.Locale
 /* ----------------------------- Models ----------------------------- */
 
 enum class PageFilterTag(
-    @StringRes val label: Int,
+    @get:StringRes val label: Int,
     val icon: ImageVector,
     val bg: Color,
     val fg: Color
 ) {
     MAGIC(R.string.fine_preset_magic, Icons.Outlined.AutoFixHigh, AppColors.PrimaryTint, AppColors.Primary),
-    BW(R.string.fine_preset_bw, Icons.Outlined.Contrast, AppColors.SurfaceSoft, AppColors.TextPrimary)
+    BW(R.string.fine_preset_bw, Icons.Outlined.Contrast, AppColors.SurfaceSoft, AppColors.TextPrimary),
+    GRAYSCALE(R.string.fine_preset_gray, Icons.Outlined.FilterBAndW, AppColors.SurfaceSoft, AppColors.TextPrimary),
+    WHITEBOARD(R.string.fine_preset_whiteboard, Icons.Outlined.WbSunny, AppColors.SurfaceSoft, AppColors.TextPrimary),
+    ORIGINAL(R.string.fine_preset_original, Icons.Outlined.Image, AppColors.SurfaceSoft, AppColors.TextPrimary)
 }
 
 data class ScannedPage(
@@ -129,11 +138,6 @@ enum class QualityOption(@StringRes val label: Int, val dpi: Int) {
     MAXIMUM(R.string.batch_quality_max, 600)
 }
 
-private val sampleScannedPages = listOf(
-    ScannedPage(1, "Cover / Contract", PageFilterTag.MAGIC),
-    ScannedPage(2, "Terms & Signatures", PageFilterTag.BW)
-)
-
 private val ScreenPadding = 16.dp
 private val CardGap = 12.dp
 
@@ -149,16 +153,30 @@ private val CardGap = 12.dp
 fun BatchReviewScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    initialPages: List<ScannedPage> = sampleScannedPages,
+    viewModel: ScanSessionViewModel = viewModel(),
     initialFileName: String = "Contract_Scan_2024-11-14.pdf",
     onAddMore: () -> Unit = {},
     onPageClick: (pageId: Int) -> Unit = {},
     onRetake: (pageId: Int) -> Unit = {},
     onAutoCropAll: () -> Unit = {},
     onSavePdf: (PdfExportOptions) -> Unit = {},
-    pagePreview: @Composable BoxScope.(ScannedPage) -> Unit = { SamplePagePreview(it) }
+    pagePreview: @Composable BoxScope.(ScannedPage) -> Unit = { page ->
+        val thumb = viewModel.thumbs[page.id]
+        if (thumb != null) {
+            Image(
+                bitmap = thumb,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .rotate(page.rotation)
+            )
+        } else {
+            SamplePagePreview(page)
+        }
+    }
 ) {
-    val pages = remember { mutableStateListOf<ScannedPage>().apply { addAll(initialPages) } }
+    val pages = viewModel.pages
     var fileName by remember { mutableStateOf(initialFileName) }
     var pageSize by remember { mutableStateOf(PageSizeOption.A4) }
     var quality by remember { mutableStateOf(QualityOption.BALANCED) }

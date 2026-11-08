@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.pdftoolkit.R
 import com.example.pdftoolkit.core.pdf.ScanExportPage
 import com.example.pdftoolkit.core.pdf.ScanPageSize
+import com.example.pdftoolkit.core.scan.CaptureMode
 import com.example.pdftoolkit.core.scan.DocumentDetector
 import com.example.pdftoolkit.core.scan.EnhanceParams
 import com.example.pdftoolkit.core.scan.FlashSetting
@@ -77,11 +78,13 @@ class ScanSessionViewModel(app: Application) : ToolViewModel(app) {
     val capturing = MutableStateFlow(false)
     val idFrontPending = MutableStateFlow(false)
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
+    val navigateToReview = MutableSharedFlow<Unit>(extraBufferCapacity = 4)
 
     private val captureChannel = Channel<Unit>(Channel.CONFLATED)
     val captureEvents = captureChannel.receiveAsFlow()
 
     var retakePageId: Int? = null
+    var editingPageId: Int? = null
     private var pendingIdFrontPath: String? = null
 
     // auto-capture stability tracking
@@ -355,6 +358,15 @@ class ScanSessionViewModel(app: Application) : ToolViewModel(app) {
         retakePageId = id
     }
 
+    fun setEditingPage(id: Int) {
+        editingPageId = id
+    }
+
+    suspend fun loadOriginalBitmap(id: Int): ImageBitmap? = withContext(Dispatchers.Default) {
+        val d = data[id] ?: return@withContext null
+        ImageProcessor.load(d.originalPath, 3000).asImageBitmap()
+    }
+
     fun updateQuad(id: Int, quad: Quad) {
         data[id]?.quad = quad
         refreshThumb(id)
@@ -369,7 +381,22 @@ class ScanSessionViewModel(app: Application) : ToolViewModel(app) {
     }
 
     fun applyToAll(params: EnhanceParams) {
-        pages.map { it.id }.forEach { updateParams(it, params) }
+        viewModelScope.launch(Dispatchers.Default) {
+            for (page in pages) {
+                val id = page.id
+                val d = data[id] ?: continue
+                d.params = params
+                val tag = tagFor(params.filter)
+                withContext(Dispatchers.Main) {
+                    val idx = pages.indexOfFirst { it.id == id }
+                    if (idx >= 0) pages[idx] = pages[idx].copy(filter = tag)
+                }
+                runCatching {
+                    val bmp = renderBitmap(d, d.params, 700, true)
+                    withContext(Dispatchers.Main) { thumbs[id] = bmp.asImageBitmap() }
+                }
+            }
+        }
     }
 
     fun autoCropAll() {
