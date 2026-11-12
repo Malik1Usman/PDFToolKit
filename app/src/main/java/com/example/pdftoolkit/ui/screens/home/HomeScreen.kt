@@ -73,6 +73,12 @@ import com.example.pdftoolkit.ui.theme.AppColors
 import com.example.pdftoolkit.ui.theme.AppTextStyle
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pdftoolkit.ui.screens.history.HistoryViewModel
+
 /* ----------------------------- Models ----------------------------- */
 
 private data class FrequentTool(
@@ -102,7 +108,8 @@ private data class RecentDoc(
     val timeHighlight: Boolean,
     val icon: ImageVector,
     val iconBg: Color,
-    val accent: Color
+    val accent: Color,
+    val path: String = ""
 )
 
 /* ----------------------------- Sample data ----------------------------- */
@@ -150,6 +157,7 @@ private val ScreenPadding = 16.dp
 fun HomeScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    viewModel: HistoryViewModel = viewModel(),
     onSearchClick: () -> Unit = {},
     onChooseFiles: () -> Unit = {},
     onCameraScan: () -> Unit = {},
@@ -158,6 +166,29 @@ fun HomeScreen(
     onDocClick: (String) -> Unit = {},
     onDocMoreClick: (String) -> Unit = {}
 ) {
+    val dbEntities by viewModel.historyList.collectAsState()
+
+    val docs = remember(dbEntities) {
+        if (dbEntities.isNotEmpty()) {
+            dbEntities.take(5).map { entity ->
+                val isScan = entity.toolType == "SCAN" || entity.fileName.endsWith(".jpg", true) || entity.fileName.endsWith(".png", true)
+                RecentDoc(
+                    name = entity.fileName,
+                    size = entity.fileSize,
+                    pages = entity.pageCount.coerceAtLeast(1),
+                    time = entity.timeFormatted,
+                    timeHighlight = entity.groupName == "TODAY",
+                    icon = if (isScan) Icons.Outlined.Image else Icons.Outlined.Description,
+                    iconBg = if (isScan) AppColors.TealTint else AppColors.PrimaryTint,
+                    accent = if (isScan) AppColors.Teal else AppColors.Primary,
+                    path = entity.filePath
+                )
+            }
+        } else {
+            recentDocs
+        }
+    }
+
     val layoutDirection = LocalLayoutDirection.current
     Column(
         modifier = modifier
@@ -188,6 +219,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(20.dp))
         RecentDocumentsSection(
+            docs = docs,
             onViewAllClick = onViewAllClick,
             onDocClick = onDocClick,
             onDocMoreClick = onDocMoreClick,
@@ -553,6 +585,7 @@ private fun ToolCard(tool: ToolItem, onClick: () -> Unit, modifier: Modifier = M
 
 @Composable
 private fun RecentDocumentsSection(
+    docs: List<RecentDoc>,
     onViewAllClick: () -> Unit,
     onDocClick: (String) -> Unit,
     onDocMoreClick: (String) -> Unit,
@@ -590,11 +623,12 @@ private fun RecentDocumentsSection(
         Spacer(Modifier.height(8.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            recentDocs.forEach { doc ->
+            docs.forEach { doc ->
+                val targetPath = doc.path.ifEmpty { doc.name }
                 RecentDocItem(
                     doc = doc,
-                    onClick = { onDocClick(doc.name) },
-                    onMoreClick = { onDocMoreClick(doc.name) }
+                    onClick = { onDocClick(targetPath) },
+                    onMoreClick = { onDocMoreClick(targetPath) }
                 )
             }
         }
@@ -724,6 +758,6 @@ private fun PrivacyBadge(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1024)
 @Composable
-private fun HomeScreenPreview() {
-    PdfToolkitTheme { HomeScreen(contentPadding = PaddingValues(0.dp)) }
+fun HomeScreenPreview() {
+    PdfToolkitTheme({ HomeScreen(contentPadding = PaddingValues(0.dp)) },)
 }

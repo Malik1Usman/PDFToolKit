@@ -1044,11 +1044,13 @@ private fun PageRangeDialog(
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1000)
 @Composable
-private fun MergePdfScreenPreview() {
-    PdfToolkitTheme {
-        MergePdfScreen(
-            files = remember { mutableStateListOf<MergeFile>() },
-            contentPadding = PaddingValues(0.dp)
-        )
-    }
+fun MergePdfScreenPreview() {
+    PdfToolkitTheme(
+        {
+            MergePdfScreen(
+                files = remember { mutableStateListOf<MergeFile>() },
+                contentPadding = PaddingValues(0.dp)
+            )
+        },
+    )
 }

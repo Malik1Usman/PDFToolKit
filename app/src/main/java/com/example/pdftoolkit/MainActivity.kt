@@ -1,4 +1,4 @@
-package com.example.pdftoolkit.ui.screens.root
+package com.example.pdftoolkit
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,9 +8,12 @@ import com.example.pdftoolkit.ui.screens.main.MainScreen
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContent {
             PdfToolkitTheme {
                 MainScreen()

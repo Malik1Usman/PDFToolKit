@@ -43,8 +43,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +60,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pdftoolkit.R
+import com.example.pdftoolkit.core.db.HistoryEntity
+import com.example.pdftoolkit.ui.screens.history.HistoryViewModel
 import com.example.pdftoolkit.ui.theme.AppColors
 import com.example.pdftoolkit.ui.theme.AppTextStyle
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
@@ -115,21 +118,22 @@ private sealed interface TaskBody {
 }
 
 private data class TaskItem(
-    val id: Int,
+    val id: Long,
     val title: String,
     val time: String,
     val status: TaskStatus,
     val group: HistoryGroup,
     val accent: TaskAccent,
     val body: TaskBody,
-    val actions: List<RowAction>
+    val actions: List<RowAction>,
+    val rawEntity: HistoryEntity? = null
 )
 
-/* ----------------------------- Sample data ----------------------------- */
+/* ----------------------------- Sample fallback data ----------------------------- */
 
 private val sampleTasks = listOf(
     TaskItem(
-        id = 1,
+        id = 1L,
         title = "Compressed PDF",
         time = "Today at 2:15 PM • 1.8s",
         status = TaskStatus.COMPLETED,
@@ -139,7 +143,7 @@ private val sampleTasks = listOf(
         actions = listOf(RowAction.REPEAT, RowAction.SHARE)
     ),
     TaskItem(
-        id = 2,
+        id = 2L,
         title = "Merged 3 PDFs",
         time = "Today at 11:30 AM",
         status = TaskStatus.COMPLETED,
@@ -147,41 +151,9 @@ private val sampleTasks = listOf(
         accent = TaskAccent(Icons.Outlined.MergeType, AppColors.IndigoSoft60, AppColors.Primary, AppColors.IndigoSoft, AppColors.OnIndigo),
         body = TaskBody.Output("Quarterly_Combined_Statements.pdf", "4.1 MB", Icons.Outlined.Description),
         actions = listOf(RowAction.SHARE, RowAction.MORE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     ),
     TaskItem(
-        id = 3,
+        id = 3L,
         title = "Images to PDF (8 photos)",
         time = "Yesterday at 4:50 PM",
         status = TaskStatus.COMPLETED,
@@ -191,7 +163,7 @@ private val sampleTasks = listOf(
         actions = listOf(RowAction.SHARE)
     ),
     TaskItem(
-        id = 4,
+        id = 4L,
         title = "Split PDF",
         time = "Nov 12 at 9:04 AM",
         status = TaskStatus.FAILED,
@@ -210,16 +182,22 @@ private val ScreenPadding = 16.dp
 fun HistoryScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    viewModel: HistoryViewModel = viewModel(),
     onOpenFile: (String) -> Unit = {},
-    onRepeatClick: (Int) -> Unit = {},
-    onShareClick: (Int) -> Unit = {},
-    onRetryWithPassword: (Int) -> Unit = {}
+    onRepeatClick: (Long) -> Unit = {},
+    onShareClick: (Long) -> Unit = {},
+    onRetryWithPassword: (Long) -> Unit = {}
 ) {
-    val tasks = remember { mutableStateListOf<TaskItem>().apply { addAll(sampleTasks) } }
+    val dbEntities by viewModel.historyList.collectAsState()
     var filter by remember { mutableStateOf(HistoryFilter.ALL) }
 
+    val tasks: List<TaskItem> = remember(dbEntities) {
+        if (dbEntities.isEmpty()) sampleTasks
+        else dbEntities.map { entity -> mapEntityToTask(entity) }
+    }
+
     val visible = when (filter) {
-        HistoryFilter.ALL, HistoryFilter.THIS_WEEK -> tasks.toList()
+        HistoryFilter.ALL, HistoryFilter.THIS_WEEK -> tasks
         HistoryFilter.SUCCESSFUL -> tasks.filter { it.status == TaskStatus.COMPLETED }
         HistoryFilter.FAILED -> tasks.filter { it.status == TaskStatus.FAILED }
         HistoryFilter.TODAY -> tasks.filter { it.group == HistoryGroup.TODAY }
@@ -238,7 +216,7 @@ fun HistoryScreen(
         item {
             HistoryHeader(
                 count = tasks.size,
-                onClear = { tasks.clear() },
+                onClear = { viewModel.clearAll() },
                 modifier = Modifier.padding(horizontal = ScreenPadding)
             )
         }
@@ -276,7 +254,12 @@ fun HistoryScreen(
                                 RowAction.REPEAT -> onRepeatClick(task.id)
                                 RowAction.SHARE -> onShareClick(task.id)
                                 RowAction.MORE -> { /* TODO: bottom sheet */ }
-                                RowAction.DISMISS -> tasks.remove(task)
+                                RowAction.DISMISS -> {
+                                    val entity = task.rawEntity
+                                    if (entity != null) {
+                                        viewModel.deleteHistory(entity)
+                                    }
+                                }
                             }
                         },
                         onRetry = { onRetryWithPassword(task.id) }
@@ -289,6 +272,39 @@ fun HistoryScreen(
             PrivacyFooter(modifier = Modifier.padding(horizontal = ScreenPadding).padding(top = 12.dp))
         }
     }
+}
+
+private fun mapEntityToTask(entity: HistoryEntity): TaskItem {
+    val status = if (entity.isError || entity.status == "FAILED") TaskStatus.FAILED else TaskStatus.COMPLETED
+    val group = when (entity.groupName) {
+        "YESTERDAY" -> HistoryGroup.YESTERDAY
+        "EARLIER" -> HistoryGroup.EARLIER
+        else -> HistoryGroup.TODAY
+    }
+
+    val accent = if (status == TaskStatus.FAILED) {
+        TaskAccent(Icons.Outlined.CallSplit, AppColors.ErrorSoft, AppColors.Error, AppColors.ErrorSoft, AppColors.OnErrorContainer)
+    } else {
+        TaskAccent(Icons.Outlined.Description, AppColors.TealLight40, AppColors.Teal, AppColors.TealLight50, AppColors.TealOnLight)
+    }
+
+    val body = if (status == TaskStatus.FAILED) {
+        TaskBody.Error(entity.fileName.ifEmpty { "Process Error" }, entity.errorMessage.ifEmpty { "An unexpected error occurred" })
+    } else {
+        TaskBody.Output(entity.fileName, "${entity.fileSize} • ${entity.pageCount} pages", Icons.Outlined.Description)
+    }
+
+    return TaskItem(
+        id = entity.id,
+        title = entity.title,
+        time = entity.timeFormatted,
+        status = status,
+        group = group,
+        accent = accent,
+        body = body,
+        actions = listOf(RowAction.SHARE, RowAction.DISMISS),
+        rawEntity = entity
+    )
 }
 
 /* ----------------------------- Header ----------------------------- */
@@ -476,12 +492,13 @@ private fun TaskCard(
             if (task.status == TaskStatus.FAILED) {
                 RetryButton(onClick = onRetry)
             } else {
-                val fileName = when (val b = task.body) {
-                    is TaskBody.Compression -> b.outputName
-                    is TaskBody.Output -> b.fileName
-                    is TaskBody.Error -> b.fileName
-                }
-                OpenFileButton(onClick = { onOpenFile(fileName) })
+                val filePathOrName = task.rawEntity?.filePath?.ifEmpty { null }
+                    ?: when (val b = task.body) {
+                        is TaskBody.Compression -> b.outputName
+                        is TaskBody.Output -> b.fileName
+                        is TaskBody.Error -> b.fileName
+                    }
+                OpenFileButton(onClick = { onOpenFile(filePathOrName) })
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -755,6 +772,6 @@ private fun PrivacyFooter(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1100)
 @Composable
-private fun HistoryScreenPreview() {
-    PdfToolkitTheme { HistoryScreen(contentPadding = PaddingValues(0.dp)) }
+fun HistoryScreenPreview() {
+    PdfToolkitTheme({ HistoryScreen(contentPadding = PaddingValues(0.dp)) },)
 }

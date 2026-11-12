@@ -1236,6 +1236,6 @@ private fun ActionGroup(
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1500)
 @Composable
-private fun SplitPdfScreenPreview() {
-    PdfToolkitTheme { SplitPdfScreen(contentPadding = PaddingValues(0.dp)) }
+fun SplitPdfScreenPreview() {
+    PdfToolkitTheme({ SplitPdfScreen(contentPadding = PaddingValues(0.dp)) },)
 }

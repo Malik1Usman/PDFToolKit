@@ -23,31 +23,39 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.CallSplit
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Compress
 import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.MergeType
-import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.ViewList
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +65,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -65,21 +75,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pdftoolkit.R
 import com.example.pdftoolkit.ui.theme.AppColors
 import com.example.pdftoolkit.ui.theme.AppTextStyle
 import com.example.pdftoolkit.ui.theme.PdfToolkitTheme
-
 import java.util.Locale
 
-/* ----------------------------- Models ----------------------------- */
+/* ----------------------------- Models & Enums ----------------------------- */
 
-private enum class DocKind(@StringRes val badge: Int, val accent: Color) {
+enum class DocKind(@StringRes val badge: Int, val accent: Color) {
     PDF(R.string.pdf_badge, AppColors.Primary),
     SCAN(R.string.scan_badge, AppColors.Teal)
 }
 
-private enum class DocTag(
+enum class DocTag(
     @StringRes val label: Int,
     val icon: ImageVector,
     val bg: Color,
@@ -91,36 +101,13 @@ private enum class DocTag(
     SPLIT(R.string.tag_split_pdf, Icons.Outlined.ContentCut, AppColors.SurfaceSoft, AppColors.TextSecondary)
 }
 
-private data class FileItem(
-    val id: Int,
-    val name: String,
-    val size: String,
-    val pages: Int,
-    val date: String,
-    val kind: DocKind,
-    val thumbIcon: ImageVector,
-    val tag: DocTag? = null,
-    val starred: Boolean = false,
-    val originalSize: String? = null // size ke saath strikethrough dikhane ke liye
-)
-
-private enum class FileFilter(@StringRes val label: Int, val icon: ImageVector, val count: Int?) {
-    ALL(R.string.files_filter_all, Icons.Outlined.Check, null),
-    PDFS(R.string.files_filter_pdfs, Icons.Outlined.PictureAsPdf, 24),
-    IMAGES(R.string.files_filter_images, Icons.Outlined.Image, 12),
-    PROCESSED(R.string.files_filter_processed, Icons.Outlined.AutoFixHigh, 18),
-    STARRED(R.string.files_filter_starred, Icons.Outlined.StarBorder, null)
+enum class FileFilter(@StringRes val label: Int, val icon: ImageVector) {
+    ALL(R.string.files_filter_all, Icons.Outlined.Check),
+    PDFS(R.string.files_filter_pdfs, Icons.Outlined.PictureAsPdf),
+    IMAGES(R.string.files_filter_images, Icons.Outlined.Image),
+    PROCESSED(R.string.files_filter_processed, Icons.Outlined.AutoFixHigh),
+    STARRED(R.string.files_filter_starred, Icons.Outlined.StarBorder)
 }
-
-/* ----------------------------- Sample data ----------------------------- */
-
-private val sampleFiles = listOf(
-    FileItem(1, "Annual_Corporate_Audit_2024.pdf", "5.8 MB", 42, "Oct 16", DocKind.PDF, Icons.Outlined.Description, DocTag.COMPRESSED, starred = true),
-    FileItem(2, "Vendor_Contract_Merged_v2.pdf", "3.1 MB", 14, "Oct 15", DocKind.PDF, Icons.Outlined.MergeType, DocTag.MERGED),
-    FileItem(3, "Medical_Reimbursement_Receipts.pdf", "1.2 MB", 8, "Oct 12", DocKind.SCAN, Icons.Outlined.Image, DocTag.FROM_IMAGES),
-    FileItem(4, "Passport_Scan_Extract.pdf", "640 KB", 2, "Oct 10", DocKind.PDF, Icons.Outlined.CallSplit, DocTag.SPLIT),
-    FileItem(5, "Client_Presentation_Compressed.pdf", "2.4 MB", 20, "Oct 8", DocKind.PDF, Icons.Outlined.Compress, originalSize = "8.1 MB")
-)
 
 private val ScreenPadding = 16.dp
 
@@ -130,68 +117,125 @@ private val ScreenPadding = 16.dp
 fun FilesScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    viewModel: FilesViewModel = viewModel(),
     onImportClick: () -> Unit = {},
     onDocClick: (String) -> Unit = {},
     onDocOptionsClick: (String) -> Unit = {}
 ) {
-    var selectedFilter by remember { mutableStateOf(FileFilter.ALL) }
-    var isListView by remember { mutableStateOf(true) } // TODO: grid layout (Figma mein nahi hai)
-
-    val visibleFiles = remember(selectedFilter) {
-        when (selectedFilter) {
-            FileFilter.ALL -> sampleFiles
-            FileFilter.PDFS -> sampleFiles.filter { it.kind == DocKind.PDF }
-            FileFilter.IMAGES -> sampleFiles.filter { it.kind == DocKind.SCAN }
-            FileFilter.PROCESSED -> sampleFiles.filter { it.tag != null }
-            FileFilter.STARRED -> sampleFiles.filter { it.starred }
-        }
-    }
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(AppColors.Background)
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                top = contentPadding.calculateTopPadding() + 12.dp,
-                bottom = contentPadding.calculateBottomPadding() + 88.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            item {
-                SearchAndViewBar(
-                    isListView = isListView,
-                    onViewChange = { isListView = it },
-                    modifier = Modifier.padding(horizontal = ScreenPadding).padding(bottom = 6.dp)
-                )
-            }
-            item {
-                FilterChips(
-                    selected = selectedFilter,
-                    onSelected = { selectedFilter = it },
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-            }
-            item {
-                StorageBanner(
-                    modifier = Modifier.padding(horizontal = ScreenPadding).padding(bottom = 6.dp)
-                )
-            }
-            item {
-                SelectSortBar(
-                    itemCount = visibleFiles.size,
-                    modifier = Modifier.padding(horizontal = ScreenPadding).padding(top = 4.dp, bottom = 6.dp)
-                )
-            }
-            items(visibleFiles, key = { it.id }) { file ->
-                DocumentCard(
-                    file = file,
-                    onClick = { onDocClick(file.name) },
-                    onOptionsClick = { onDocOptionsClick(file.name) },
-                    modifier = Modifier.padding(horizontal = ScreenPadding)
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = contentPadding.calculateTopPadding() + 12.dp,
+                    bottom = contentPadding.calculateBottomPadding() + 88.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    SearchAndViewBar(
+                        query = uiState.searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChange(it) },
+                        isListView = uiState.isListView,
+                        onViewChange = { viewModel.toggleViewMode(it) },
+                        modifier = Modifier
+                            .padding(horizontal = ScreenPadding)
+                            .padding(bottom = 6.dp)
+                    )
+                }
+                item {
+                    FilterChips(
+                        selected = uiState.selectedFilter,
+                        uiState = uiState,
+                        onSelected = { viewModel.onFilterSelected(it) },
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                }
+                item {
+                    StorageBanner(
+                        storagePath = uiState.storagePath,
+                        freeStorage = uiState.freeStorageFormatted,
+                        usedMb = uiState.totalOutputsSizeMb,
+                        modifier = Modifier
+                            .padding(horizontal = ScreenPadding)
+                            .padding(bottom = 6.dp)
+                    )
+                }
+                item {
+                    SelectSortBar(
+                        itemCount = uiState.filteredFiles.size,
+                        currentSort = uiState.selectedSort,
+                        isSelectionMode = uiState.isSelectionMode,
+                        onToggleSelection = { viewModel.toggleSelectionMode() },
+                        onSortSelected = { viewModel.onSortSelected(it) },
+                        modifier = Modifier
+                            .padding(horizontal = ScreenPadding)
+                            .padding(top = 4.dp, bottom = 6.dp)
+                    )
+                }
+
+                if (uiState.filteredFiles.isEmpty()) {
+                    item {
+                        EmptyFilesCard(
+                            onImportClick = onImportClick,
+                            modifier = Modifier.padding(horizontal = ScreenPadding, vertical = 24.dp)
+                        )
+                    }
+                } else if (uiState.isListView) {
+                    items(uiState.filteredFiles, key = { it.id }) { file ->
+                        DocumentCard(
+                            file = file,
+                            isSelectionMode = uiState.isSelectionMode,
+                            isSelected = uiState.selectedIds.contains(file.id),
+                            onSelectToggle = { viewModel.toggleFileSelection(file.id) },
+                            onClick = {
+                                if (uiState.isSelectionMode) {
+                                    viewModel.toggleFileSelection(file.id)
+                                } else {
+                                    onDocClick(file.path)
+                                }
+                            },
+                            onShare = { viewModel.shareFile(context, file) },
+                            onToggleStar = { viewModel.toggleStar(file.id) },
+                            onDelete = { viewModel.deleteFile(file) },
+                            modifier = Modifier.padding(horizontal = ScreenPadding)
+                        )
+                    }
+                } else {
+                    // Grid View: Render pairs of items in rows
+                    val chunks = uiState.filteredFiles.chunked(2)
+                    items(chunks, key = { chunk -> chunk.first().id }) { chunk ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = ScreenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            chunk.forEach { file ->
+                                DocumentGridCard(
+                                    file = file,
+                                    onClick = { onDocClick(file.path) },
+                                    onShare = { viewModel.shareFile(context, file) },
+                                    onToggleStar = { viewModel.toggleStar(file.id) },
+                                    onDelete = { viewModel.deleteFile(file) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (chunk.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -208,6 +252,8 @@ fun FilesScreen(
 
 @Composable
 private fun SearchAndViewBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
     isListView: Boolean,
     onViewChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -229,16 +275,34 @@ private fun SearchAndViewBar(
         ) {
             Icon(Icons.Outlined.Search, null, tint = AppColors.TextHint, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.files_search_hint),
-                style = AppTextStyle.Body14Regular,
-                color = AppColors.TextHint,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Outlined.Mic, stringResource(R.string.cd_voice_input), tint = AppColors.TextSecondary, modifier = Modifier.size(18.dp))
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                if (query.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.files_search_hint),
+                        style = AppTextStyle.Body14Regular,
+                        color = AppColors.TextHint,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    textStyle = AppTextStyle.Body14Regular.copy(color = AppColors.TextPrimary),
+                    cursorBrush = SolidColor(AppColors.Primary),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = "Clear search",
+                        tint = AppColors.TextSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
 
@@ -284,6 +348,7 @@ private fun ViewToggleButton(
 @Composable
 private fun FilterChips(
     selected: FileFilter,
+    uiState: FilesUiState,
     onSelected: (FileFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -292,10 +357,17 @@ private fun FilterChips(
         contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(FileFilter.values().toList()) { filter ->
+        items(FileFilter.entries) { filter ->
             val isSelected = filter == selected
-            val label = if (filter.count != null) {
-                stringResource(filter.label, filter.count)
+            val count = when (filter) {
+                FileFilter.ALL -> null
+                FileFilter.PDFS -> uiState.pdfsCount
+                FileFilter.IMAGES -> uiState.scansCount
+                FileFilter.PROCESSED -> uiState.processedCount
+                FileFilter.STARRED -> uiState.starredCount
+            }
+            val label = if (count != null && count > 0) {
+                "${stringResource(filter.label)} ($count)"
             } else {
                 stringResource(filter.label)
             }
@@ -330,7 +402,12 @@ private fun FilterChips(
 /* ----------------------------- Storage banner ----------------------------- */
 
 @Composable
-private fun StorageBanner(modifier: Modifier = Modifier) {
+private fun StorageBanner(
+    storagePath: String,
+    freeStorage: String,
+    usedMb: Float,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -360,7 +437,7 @@ private fun StorageBanner(modifier: Modifier = Modifier) {
                 Text(text = "›", style = AppTextStyle.Caption11Medium, color = AppColors.TextHint)
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.files_storage_path),
+                    text = storagePath,
                     style = AppTextStyle.Caption11Medium,
                     color = AppColors.TextPrimary,
                     maxLines = 1,
@@ -368,14 +445,13 @@ private fun StorageBanner(modifier: Modifier = Modifier) {
                 )
             }
             Text(
-                text = stringResource(R.string.files_storage_free, "42.6 GB"),
+                text = stringResource(R.string.files_storage_free, freeStorage),
                 style = AppTextStyle.Caption11Medium,
                 color = AppColors.Primary,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
 
-        // Segmented storage bar: used (blue), processed (teal), other (light), free (track)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -383,20 +459,15 @@ private fun StorageBanner(modifier: Modifier = Modifier) {
                 .clip(CircleShape)
                 .background(AppColors.SurfaceSoft)
         ) {
+            val usedWeight = usedMb.coerceAtLeast(10f)
             Box(
                 modifier = Modifier
-                    .weight(93.52f)
+                    .weight(usedWeight)
                     .fillMaxHeight()
                     .clip(CircleShape)
                     .background(AppColors.Primary)
             )
-            Box(modifier = Modifier.weight(48.75f).fillMaxHeight().padding(start = 2.dp)) {
-                Box(Modifier.fillMaxSize().clip(CircleShape).background(AppColors.Teal))
-            }
-            Box(modifier = Modifier.weight(28.72f).fillMaxHeight().padding(start = 2.dp)) {
-                Box(Modifier.fillMaxSize().clip(CircleShape).background(AppColors.SurfaceTrack))
-            }
-            Spacer(Modifier.weight(163f))
+            Spacer(Modifier.weight(200f))
         }
     }
 }
@@ -404,7 +475,16 @@ private fun StorageBanner(modifier: Modifier = Modifier) {
 /* ----------------------------- Select / sort bar ----------------------------- */
 
 @Composable
-private fun SelectSortBar(itemCount: Int, modifier: Modifier = Modifier) {
+private fun SelectSortBar(
+    itemCount: Int,
+    currentSort: FileSort,
+    isSelectionMode: Boolean,
+    onToggleSelection: () -> Unit,
+    onSortSelected: (FileSort) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showSortMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -414,17 +494,22 @@ private fun SelectSortBar(itemCount: Int, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(AppColors.SurfaceSoft)
-                    .clickable { /* TODO: selection mode */ }
+                    .background(if (isSelectionMode) AppColors.PrimaryTint else AppColors.SurfaceSoft)
+                    .clickable(onClick = onToggleSelection)
                     .padding(horizontal = 10.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Checklist, null, tint = AppColors.TextPrimary, modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Outlined.Checklist,
+                    null,
+                    tint = if (isSelectionMode) AppColors.Primary else AppColors.TextPrimary,
+                    modifier = Modifier.size(16.dp)
+                )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = stringResource(R.string.files_select),
+                    text = if (isSelectionMode) "Cancel Select" else stringResource(R.string.files_select),
                     style = AppTextStyle.Label12Medium,
-                    color = AppColors.TextPrimary
+                    color = if (isSelectionMode) AppColors.Primary else AppColors.TextPrimary
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -435,46 +520,150 @@ private fun SelectSortBar(itemCount: Int, modifier: Modifier = Modifier) {
             )
         }
 
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { /* TODO: sort dropdown */ }
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Outlined.SwapVert, null, tint = AppColors.TextSecondary, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(
-                text = stringResource(R.string.files_sort_modified_newest),
-                style = AppTextStyle.Label12Medium,
-                color = AppColors.TextSecondary
-            )
+        Box {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { showSortMenu = true }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Outlined.SwapVert, null, tint = AppColors.TextSecondary, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                val sortLabel = when (currentSort) {
+                    FileSort.MODIFIED_NEWEST -> "Newest"
+                    FileSort.MODIFIED_OLDEST -> "Oldest"
+                    FileSort.NAME_AZ -> "Name (A-Z)"
+                    FileSort.NAME_ZA -> "Name (Z-A)"
+                    FileSort.SIZE_LARGEST -> "Size (Largest)"
+                    FileSort.SIZE_SMALLEST -> "Size (Smallest)"
+                }
+                Text(
+                    text = sortLabel,
+                    style = AppTextStyle.Label12Medium,
+                    color = AppColors.TextSecondary
+                )
+            }
+
+            DropdownMenu(
+                expanded = showSortMenu,
+                onDismissRequest = { showSortMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Newest First") },
+                    onClick = { onSortSelected(FileSort.MODIFIED_NEWEST); showSortMenu = false }
+                )
+                DropdownMenuItem(
+                    text = { Text("Oldest First") },
+                    onClick = { onSortSelected(FileSort.MODIFIED_OLDEST); showSortMenu = false }
+                )
+                DropdownMenuItem(
+                    text = { Text("Name (A to Z)") },
+                    onClick = { onSortSelected(FileSort.NAME_AZ); showSortMenu = false }
+                )
+                DropdownMenuItem(
+                    text = { Text("Name (Z to A)") },
+                    onClick = { onSortSelected(FileSort.NAME_ZA); showSortMenu = false }
+                )
+                DropdownMenuItem(
+                    text = { Text("Size (Largest)") },
+                    onClick = { onSortSelected(FileSort.SIZE_LARGEST); showSortMenu = false }
+                )
+                DropdownMenuItem(
+                    text = { Text("Size (Smallest)") },
+                    onClick = { onSortSelected(FileSort.SIZE_SMALLEST); showSortMenu = false }
+                )
+            }
         }
     }
 }
 
-/* ----------------------------- Document card ----------------------------- */
+/* ----------------------------- Empty state card ----------------------------- */
+
+@Composable
+private fun EmptyFilesCard(
+    onImportClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(1.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(AppColors.Surface)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(AppColors.PrimaryTint),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Outlined.FolderOpen, null, tint = AppColors.Primary, modifier = Modifier.size(32.dp))
+        }
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = "No Documents Found",
+            style = AppTextStyle.Title16Medium,
+            color = AppColors.TextPrimary
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Processed and imported documents will appear here.",
+            style = AppTextStyle.Label12Regular,
+            color = AppColors.TextSecondary
+        )
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(AppColors.Primary)
+                .clickable(onClick = onImportClick)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Add, null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("Import File", style = AppTextStyle.Button14SemiBold, color = Color.White)
+        }
+    }
+}
+
+/* ----------------------------- Document card (List Mode) ----------------------------- */
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DocumentCard(
-    file: FileItem,
+    file: AppFileItem,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onSelectToggle: () -> Unit,
     onClick: () -> Unit,
-    onOptionsClick: () -> Unit,
+    onShare: () -> Unit,
+    onToggleStar: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    val docKind = if (file.isScan) DocKind.SCAN else DocKind.PDF
+    val thumbIcon = if (file.isScan) Icons.Outlined.Image else Icons.Outlined.Description
+    val tagEnum = mapStringToTag(file.tag)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
-            .background(AppColors.Surface)
+            .background(if (isSelected) AppColors.PrimaryTint20 else AppColors.Surface)
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Thumbnail + type badge
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -482,16 +671,16 @@ private fun DocumentCard(
                 .background(AppColors.SurfaceSoft),
             contentAlignment = Alignment.Center
         ) {
-            Icon(file.thumbIcon, null, tint = file.kind.accent, modifier = Modifier.size(24.dp))
+            Icon(thumbIcon, null, tint = docKind.accent, modifier = Modifier.size(24.dp))
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .clip(RoundedCornerShape(topStart = 4.dp))
-                    .background(file.kind.accent)
+                    .background(docKind.accent)
                     .padding(horizontal = 4.dp)
             ) {
                 Text(
-                    text = stringResource(file.kind.badge).uppercase(Locale.getDefault()),
+                    text = stringResource(docKind.badge).uppercase(Locale.getDefault()),
                     style = AppTextStyle.Badge9SemiBold,
                     color = Color.White,
                     maxLines = 1
@@ -509,7 +698,7 @@ private fun DocumentCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)
                 )
-                if (file.starred) {
+                if (file.isStarred) {
                     Spacer(Modifier.width(6.dp))
                     Icon(
                         imageVector = Icons.Filled.Star,
@@ -527,25 +716,11 @@ private fun DocumentCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                if (file.originalSize != null) {
-                    // Compressed size (teal) + purani size strikethrough
-                    Text(
-                        text = file.size,
-                        style = AppTextStyle.Label12Regular.copy(fontWeight = FontWeight.Medium),
-                        color = AppColors.Teal
-                    )
-                    Text(
-                        text = file.originalSize,
-                        style = AppTextStyle.Caption11Regular.copy(textDecoration = TextDecoration.LineThrough),
-                        color = AppColors.TextHint
-                    )
-                } else {
-                    MetaText(file.size)
-                }
+                MetaText(file.size)
                 Bullet()
                 MetaText(stringResource(R.string.doc_pages_format, file.pages))
                 Bullet()
-                file.tag?.let { tag ->
+                tagEnum?.let { tag ->
                     TagChip(tag)
                     Bullet()
                 }
@@ -553,13 +728,141 @@ private fun DocumentCard(
             }
         }
 
-        IconButton(onClick = onOptionsClick, modifier = Modifier.size(40.dp)) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = stringResource(R.string.cd_document_options, file.name),
-                tint = AppColors.TextSecondary,
-                modifier = Modifier.size(18.dp)
-            )
+        Box {
+            IconButton(onClick = { showMenu = true }, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    imageVector = Icons.Outlined.MoreVert,
+                    contentDescription = stringResource(R.string.cd_document_options, file.name),
+                    tint = AppColors.TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Open Document") },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, null, modifier = Modifier.size(18.dp)) },
+                    onClick = { showMenu = false; onClick() }
+                )
+                DropdownMenuItem(
+                    text = { Text("Share") },
+                    leadingIcon = { Icon(Icons.Outlined.Share, null, modifier = Modifier.size(18.dp)) },
+                    onClick = { showMenu = false; onShare() }
+                )
+                DropdownMenuItem(
+                    text = { Text(if (file.isStarred) "Remove from Starred" else "Add to Starred") },
+                    leadingIcon = {
+                        Icon(
+                            if (file.isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                            null,
+                            tint = if (file.isStarred) AppColors.Star else AppColors.TextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    onClick = { showMenu = false; onToggleStar() }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete", color = AppColors.Error) },
+                    leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = AppColors.Error, modifier = Modifier.size(18.dp)) },
+                    onClick = { showMenu = false; onDelete() }
+                )
+            }
+        }
+    }
+}
+
+/* ----------------------------- Document card (Grid Mode) ----------------------------- */
+
+@Composable
+private fun DocumentGridCard(
+    file: AppFileItem,
+    onClick: () -> Unit,
+    onShare: () -> Unit,
+    onToggleStar: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    val docKind = if (file.isScan) DocKind.SCAN else DocKind.PDF
+    val thumbIcon = if (file.isScan) Icons.Outlined.Image else Icons.Outlined.Description
+
+    Column(
+        modifier = modifier
+            .shadow(1.dp, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.Surface)
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(AppColors.SurfaceSoft),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(thumbIcon, null, tint = docKind.accent, modifier = Modifier.size(20.dp))
+            }
+
+            Box {
+                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = Icons.Outlined.MoreVert,
+                        contentDescription = null,
+                        tint = AppColors.TextSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Open Document") },
+                        onClick = { showMenu = false; onClick() }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Share") },
+                        onClick = { showMenu = false; onShare() }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(if (file.isStarred) "Unstar" else "Star") },
+                        onClick = { showMenu = false; onToggleStar() }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = AppColors.Error) },
+                        onClick = { showMenu = false; onDelete() }
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = file.name,
+            style = AppTextStyle.Body14SemiBold.copy(letterSpacing = 0.sp),
+            color = AppColors.TextPrimary,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MetaText(file.size)
+            MetaText(file.date)
         }
     }
 }
@@ -594,6 +897,16 @@ private fun TagChip(tag: DocTag) {
     }
 }
 
+private fun mapStringToTag(tagString: String?): DocTag? {
+    return when (tagString) {
+        "COMPRESSED" -> DocTag.COMPRESSED
+        "MERGED" -> DocTag.MERGED
+        "FROM_IMAGES" -> DocTag.FROM_IMAGES
+        "SPLIT" -> DocTag.SPLIT
+        else -> null
+    }
+}
+
 /* ----------------------------- Extended FAB ----------------------------- */
 
 @Composable
@@ -622,6 +935,6 @@ private fun ImportFab(onClick: () -> Unit, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
-private fun FilesScreenPreview() {
+fun FilesScreenPreview() {
     PdfToolkitTheme { FilesScreen(contentPadding = PaddingValues(0.dp)) }
 }

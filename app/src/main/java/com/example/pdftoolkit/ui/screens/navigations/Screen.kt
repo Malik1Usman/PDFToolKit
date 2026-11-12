@@ -37,8 +37,8 @@ sealed class Screen(
     object MergePdf : Screen("merge_pdf", R.string.merge_title, Icons.Outlined.MergeType)
     object CompressPdf : Screen("compress_pdf", R.string.compress_title, Icons.Outlined.Compress)
     object SplitPdf : Screen("split_pdf", R.string.split_title, Icons.Outlined.CallSplit)
-    object Protect : Screen("protect_pdf", R.string.tool_set_password, Icons.Outlined.Lock)
-    object Watermark : Screen("watermark_pdf", R.string.tool_watermark, Icons.Outlined.PictureInPictureAlt)
+    object Protect : Screen("set_password", R.string.tool_set_password, Icons.Outlined.Lock)
+    object Watermark : Screen("watermark", R.string.tool_watermark, Icons.Outlined.PictureInPictureAlt)
     object ExtractText : Screen("extract_text", R.string.tool_extract_text, Icons.Outlined.TextFields)
     object PageEdit : Screen("reorder_pdf", R.string.tool_rotate, Icons.Outlined.RotateRight)
 }
@@ -55,7 +55,10 @@ val routesWithoutBottomBar = setOf(
     Screen.Protect.route,
     Screen.Watermark.route,
     Screen.ExtractText.route,
-    Screen.PageEdit.route
+    Screen.PageEdit.route,
+    "pdf_to_word",
+    "rotate",
+    "delete_pages"
 )
 
 /** Order = bottom bar ka order. Index 2 (Scan) center raised button hai. */

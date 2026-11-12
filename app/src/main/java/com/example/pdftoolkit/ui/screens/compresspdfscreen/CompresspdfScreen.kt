@@ -1051,6 +1051,6 @@ private fun ActionRow(
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1100)
 @Composable
-private fun CompressPdfScreenPreview() {
-    PdfToolkitTheme { CompressPdfScreen(contentPadding = PaddingValues(0.dp)) }
+fun CompressPdfScreenPreview() {
+    PdfToolkitTheme({ CompressPdfScreen(contentPadding = PaddingValues(0.dp)) },)
 }

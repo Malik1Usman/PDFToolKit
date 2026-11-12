@@ -33,4 +33,21 @@ object OutputActions {
             Intent.createChooser(send, record.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
+
+    fun sharePath(context: Context, path: String, mime: String = "application/pdf") {
+        val file = java.io.File(path)
+        if (!file.exists()) return
+        try {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val send = Intent(Intent.ACTION_SEND)
+                .setType(mime)
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            context.startActivity(
+                Intent.createChooser(send, file.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (_: Exception) {
+            Toast.makeText(context, "Could not share file", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

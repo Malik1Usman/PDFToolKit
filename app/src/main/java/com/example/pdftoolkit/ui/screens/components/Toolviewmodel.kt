@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pdftoolkit.R
+import com.example.pdftoolkit.core.db.HistoryRepository
 import com.example.pdftoolkit.core.pdf.PdfEngine
 import com.example.pdftoolkit.core.pdf.OutputRecord
 import com.example.pdftoolkit.core.pdf.OutputStore
@@ -25,12 +26,13 @@ sealed interface ToolState {
 
 /**
  * Sab tool ViewModels ka base: engine chalata hai, progress / cancel / error handle karta hai,
- * aur result ko OutputStore mein save karta hai.
+ * aur result ko OutputStore & Room DB mein save karta hai.
  */
 abstract class ToolViewModel(app: Application) : AndroidViewModel(app) {
 
     protected val engine = PdfEngine(app)
     protected val store = OutputStore(app)
+    protected val historyRepository = HistoryRepository(app)
 
     private val _state = MutableStateFlow<ToolState>(ToolState.Idle)
     val state: StateFlow<ToolState> = _state.asStateFlow()
@@ -50,6 +52,7 @@ abstract class ToolViewModel(app: Application) : AndroidViewModel(app) {
             _state.value = ToolState.Working(message, null)
             try {
                 val record = block { p -> _state.value = ToolState.Working(message, p.coerceIn(0f, 1f)) }
+                historyRepository.recordSuccess(record)
                 _state.value = ToolState.Success(record)
             } catch (e: CancellationException) {
                 _state.value = ToolState.Idle

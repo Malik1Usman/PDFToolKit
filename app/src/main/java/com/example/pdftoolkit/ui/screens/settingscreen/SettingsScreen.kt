@@ -663,8 +663,8 @@ private fun AppInfoFooter() {
 
 /* ----------------------------- Preview ----------------------------- */
 
-@Preview(showBackground = true, )
+@Preview(showBackground = true)
 @Composable
-private fun SettingsScreenPreview() {
-    PdfToolkitTheme { SettingsScreen(contentPadding = PaddingValues(0.dp)) }
+fun SettingsScreenPreview() {
+    PdfToolkitTheme({ SettingsScreen(contentPadding = PaddingValues(0.dp)) },)
 }

@@ -1029,6 +1029,6 @@ private fun Modifier.fullBleed(horizontalPadding: Dp): Modifier = this.layout { 
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1500)
 @Composable
-private fun FineTuneScreenPreview() {
-    PdfToolkitTheme { FineTuneScreen(contentPadding = PaddingValues(0.dp)) }
+fun FineTuneScreenPreview() {
+    PdfToolkitTheme({ FineTuneScreen(contentPadding = PaddingValues(0.dp)) },)
 }

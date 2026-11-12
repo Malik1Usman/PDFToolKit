@@ -18,7 +18,21 @@ private val LightColors = lightColorScheme(
 )
 
 @Composable
-fun PdfToolkitTheme(content: @Composable () -> Unit) {
+fun PdfToolkitTheme(
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colorScheme = LightColors,
+        typography = AppTypography,
+        content = content
+    )
+}
+
+@Composable
+fun PdfToolkitTheme(
+    darkTheme: Boolean,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
         colorScheme = LightColors,
         typography = AppTypography,

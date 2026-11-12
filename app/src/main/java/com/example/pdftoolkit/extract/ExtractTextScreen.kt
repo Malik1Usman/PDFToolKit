@@ -426,7 +426,7 @@ private fun copyToClipboard(context: Context, text: String): Boolean = try {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun ExtractingViewPreview() {
+fun ExtractingViewPreview() {
     MaterialTheme {
         ExtractingView(
             progress = 0.65f,

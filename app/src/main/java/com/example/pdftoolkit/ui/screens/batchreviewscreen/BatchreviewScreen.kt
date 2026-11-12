@@ -1019,6 +1019,6 @@ private fun ActionBar(
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 1300)
 @Composable
-private fun BatchReviewScreenPreview() {
-    PdfToolkitTheme { BatchReviewScreen(contentPadding = PaddingValues(0.dp)) }
+fun BatchReviewScreenPreview() {
+    PdfToolkitTheme({ BatchReviewScreen(contentPadding = PaddingValues(0.dp)) },)
 }

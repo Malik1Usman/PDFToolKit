@@ -1,60 +1,60 @@
 package com.example.pdftoolkit.ui.screens.navigations
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import com.example.pdftoolkit.ui.screens.finetunescreen.FineTuneScreen
-import com.example.pdftoolkit.ui.history.HistoryScreen
-import com.example.pdftoolkit.ui.screens.settingscreen.SettingsScreen
-import com.example.pdftoolkit.ui.screens.files.FilesScreen
-import com.example.pdftoolkit.ui.screens.home.HomeScreen
-import com.example.pdftoolkit.ui.screens.scanscreen.ScannerScreen
-import com.example.pdftoolkit.ui.screens.scanscreen.ScanSessionViewModel
-import com.example.pdftoolkit.ui.screens.batchreviewscreen.BatchReviewScreen
-import com.example.pdftoolkit.ui.screens.cropscreen.CropEditorScreen
-
-import com.example.pdftoolkit.ui.screens.extracttextscreen.ExtractTextScreen
-import com.example.pdftoolkit.core.scan.Quad
-import androidx.compose.ui.graphics.ImageBitmap
-
-import com.example.pdftoolkit.R
-import com.example.pdftoolkit.ui.screens.compresspdfscreen.CompressPdfScreen
-import com.example.pdftoolkit.ui.screens.mergepdfscreen.MergePdfScreen
-
-
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.pdftoolkit.R
 import com.example.pdftoolkit.core.pdf.OutputActions
+import com.example.pdftoolkit.core.scan.Quad
 import com.example.pdftoolkit.delete.DeletePagesScreen
 import com.example.pdftoolkit.extract.ExtractTextScreen
 import com.example.pdftoolkit.password.SetPasswordScreen
-
 import com.example.pdftoolkit.reorder.ReorderPdfScreen
 import com.example.pdftoolkit.rotate.RotateScreen
 import com.example.pdftoolkit.toword.PdfToWordScreen
+import com.example.pdftoolkit.ui.history.HistoryScreen
+import com.example.pdftoolkit.ui.screens.batchreviewscreen.BatchReviewScreen
 import com.example.pdftoolkit.ui.screens.components.ToolStateHost
+import com.example.pdftoolkit.ui.screens.compresspdfscreen.CompressPdfScreen
 import com.example.pdftoolkit.ui.screens.compresspdfscreen.CompressViewModel
+import com.example.pdftoolkit.ui.screens.cropscreen.CropEditorScreen
+import com.example.pdftoolkit.ui.screens.files.FilesScreen
+import com.example.pdftoolkit.ui.screens.finetunescreen.FineTuneScreen
+import com.example.pdftoolkit.ui.screens.home.HomeScreen
+import com.example.pdftoolkit.ui.screens.mergepdfscreen.MergePdfScreen
 import com.example.pdftoolkit.ui.screens.mergepdfscreen.MergeViewModel
+import com.example.pdftoolkit.ui.screens.premium.PremiumScreen
+import com.example.pdftoolkit.ui.screens.preview.DocumentPreviewScreen
+import com.example.pdftoolkit.ui.screens.scanscreen.ScanSessionViewModel
+import com.example.pdftoolkit.ui.screens.scanscreen.ScannerScreen
+import com.example.pdftoolkit.ui.screens.settingscreen.SettingsScreen
 import com.example.pdftoolkit.ui.screens.splitpdfscreen.SplitPdfScreen
 import com.example.pdftoolkit.ui.screens.splitpdfscreen.SplitViewModel
 import com.example.pdftoolkit.watermark.WatermarkScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 private val PDF_MIME = arrayOf("application/pdf")
 
@@ -71,9 +71,17 @@ fun AppNavigation(
         modifier = modifier
     ) {
         composable(Screen.Home.route) {
+            val context = LocalContext.current
+            val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) {
+                    val encoded = URLEncoder.encode(uri.toString(), "UTF-8")
+                    navController.navigate("document_preview?path=$encoded")
+                }
+            }
+
             HomeScreen(
                 contentPadding = contentPadding,
-                onChooseFiles = { /* TODO: open file picker */ },
+                onChooseFiles = { filePicker.launch(PDF_MIME) },
                 onCameraScan = { navController.navigateToScan() },
                 onToolClick = { titleRes ->
                     val route = when (titleRes) {
@@ -86,12 +94,23 @@ fun AppNavigation(
                         R.string.tool_rotate -> "rotate"
                         R.string.tool_delete_pages -> "delete_pages"
                         R.string.tool_reorder -> "reorder_pdf"
-                        R.string.tool_to_word->"pdf_to_word"
+                        R.string.tool_to_word -> "pdf_to_word"
                         else -> null
                     }
                     if (route != null) navController.navigate(route) { launchSingleTop = true }
                 },
-                onViewAllClick = { navController.navigateToTopLevel(Screen.Files) }
+                onViewAllClick = { navController.navigateToTopLevel(Screen.History) },
+                onDocClick = { path ->
+                    if (path.isNotEmpty()) {
+                        val encoded = URLEncoder.encode(path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    }
+                },
+                onDocMoreClick = { path ->
+                    if (path.isNotEmpty()) {
+                        OutputActions.sharePath(context, path)
+                    }
+                }
             )
         }
 
@@ -99,7 +118,23 @@ fun AppNavigation(
             WatermarkScreen(onBack = { navController.popBackStack() })
         }
         composable(Screen.Files.route) {
-            FilesScreen(contentPadding = contentPadding)
+            val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) {
+                    val encoded = URLEncoder.encode(uri.toString(), "UTF-8")
+                    navController.navigate("document_preview?path=$encoded")
+                }
+            }
+
+            FilesScreen(
+                contentPadding = contentPadding,
+                onImportClick = { filePicker.launch(PDF_MIME) },
+                onDocClick = { path ->
+                    if (path.isNotEmpty()) {
+                        val encoded = URLEncoder.encode(path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    }
+                }
+            )
         }
         composable(Screen.Scan.route) {
             ScannerScreen(
@@ -131,7 +166,7 @@ fun AppNavigation(
             LaunchedEffect(Unit) {
                 if (!asked && vm.files.isEmpty()) {
                     asked = true
-                    picker.launch(PDF_MIME)        // tool khulte hi file picker
+                    picker.launch(PDF_MIME)
                 }
             }
 
@@ -141,15 +176,18 @@ fun AppNavigation(
                     contentPadding = contentPadding,
                     onBack = { navController.popBackStack() },
                     onAddFromDevice = { picker.launch(PDF_MIME) },
-                    onAddFromDrive = { picker.launch(PDF_MIME) },   // system picker mein Drive bhi aata hai
-                    onPreview = { options -> vm.merge(options) },   // abhi: output banao + Open dialog
+                    onAddFromDrive = { picker.launch(PDF_MIME) },
+                    onPreview = { options -> vm.merge(options) },
                     onMerge = { options -> vm.merge(options) }
                 )
                 ToolStateHost(
                     state = state,
                     onCancel = vm::cancel,
                     onDismiss = vm::dismissState,
-                    onOpen = { OutputActions.open(context, it) },
+                    onOpen = { record ->
+                        val encoded = URLEncoder.encode(record.path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    },
                     onShare = { OutputActions.share(context, it) },
                     onDone = {
                         vm.dismissState()
@@ -199,9 +237,12 @@ fun AppNavigation(
                     onCancel = vm::cancel,
                     onDismiss = {
                         vm.dismissState()
-                        if (vm.source.value == null) navController.popBackStack()   // unreadable file
+                        if (vm.source.value == null) navController.popBackStack()
                     },
-                    onOpen = { OutputActions.open(context, it) },
+                    onOpen = { record ->
+                        val encoded = URLEncoder.encode(record.path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    },
                     onShare = { OutputActions.share(context, it) },
                     onDone = {
                         vm.dismissState()
@@ -210,6 +251,7 @@ fun AppNavigation(
                 )
             }
         }
+
         composable("pdf_to_word") {
             PdfToWordScreen(onBack = { navController.popBackStack() })
         }
@@ -268,7 +310,10 @@ fun AppNavigation(
                         vm.dismissState()
                         if (vm.source.value == null) navController.popBackStack()
                     },
-                    onOpen = { OutputActions.open(context, it) },
+                    onOpen = { record ->
+                        val encoded = URLEncoder.encode(record.path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    },
                     onShare = { OutputActions.share(context, it) },
                     onDone = {
                         vm.dismissState()
@@ -280,17 +325,6 @@ fun AppNavigation(
 
         composable("set_password") {
             SetPasswordScreen(onBack = { navController.popBackStack() })
-        }
-//        composable(Screen.Watermark.route) {
-//            val vm: com.example.pdftoolkit.ui.screens.watermarkscreen.WatermarkViewModel = viewModel()
-//            WatermarkScreen(contentPadding = contentPadding, viewModel = vm, onBack = { navController.popBackStack() })
-//        }
-        composable(Screen.ExtractText.route) {
-            val vm: com.example.pdftoolkit.ui.screens.extracttextscreen.ExtractTextViewModel = viewModel()
-            ExtractTextScreen(contentPadding = contentPadding, viewModel = vm, onBack = { navController.popBackStack() })
-        }
-        composable(Screen.PageEdit.route) {
-            ReorderPdfScreen(onBack = { navController.popBackStack() })
         }
 
         /* ----------------------------- SCANNER FLOW ----------------------------- */
@@ -350,8 +384,42 @@ fun AppNavigation(
                 onApply = { navController.popBackStack() }
             )
         }
-        composable(Screen.History.route) { HistoryScreen(contentPadding) }
-        composable(Screen.Settings.route) { SettingsScreen(contentPadding) }
+        composable(Screen.History.route) {
+            HistoryScreen(
+                contentPadding = contentPadding,
+                onOpenFile = { path ->
+                    if (path.isNotEmpty()) {
+                        val encoded = URLEncoder.encode(path, "UTF-8")
+                        navController.navigate("document_preview?path=$encoded")
+                    }
+                }
+            )
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                contentPadding = contentPadding,
+                onUpgradeClick = { navController.navigate("premium") { launchSingleTop = true } }
+            )
+        }
+        composable("premium") {
+            PremiumScreen(
+                onClose = { navController.popBackStack() },
+                onContinue = { navController.popBackStack() }
+            )
+        }
+
+        /* ----------------------------- DOCUMENT PREVIEW ----------------------------- */
+        composable(
+            route = "document_preview?path={path}",
+            arguments = listOf(navArgument("path") { type = NavType.StringType; defaultValue = "" })
+        ) { backStackEntry ->
+            val encodedPath = backStackEntry.arguments?.getString("path").orEmpty()
+            val path = try { URLDecoder.decode(encodedPath, "UTF-8") } catch (_: Exception) { encodedPath }
+            DocumentPreviewScreen(
+                filePathOrUri = path,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
