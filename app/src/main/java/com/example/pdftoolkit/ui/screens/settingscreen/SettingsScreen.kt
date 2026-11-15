@@ -1,5 +1,7 @@
 package com.example.pdftoolkit.ui.screens.settingscreen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,7 +59,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.example.pdftoolkit.ui.screens.components.RateUsDialog
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -97,6 +101,8 @@ fun SettingsScreen(
     onRateClick: () -> Unit = {},
     onShareClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    var showRateUsDialog by remember { mutableStateOf(false) }
     var dpi by remember { mutableStateOf(DpiOption.HIGH) }
     var autoCompress by remember { mutableStateOf(true) }
     var keepOriginals by remember { mutableStateOf(true) }
@@ -224,7 +230,10 @@ fun SettingsScreen(
                 icon = Icons.Filled.Star,
                 title = stringResource(R.string.settings_rate),
                 subtitle = stringResource(R.string.settings_rate_desc),
-                onClick = onRateClick,
+                onClick = {
+                    showRateUsDialog = true
+                    onRateClick()
+                },
                 trailing = { StarRow() }
             )
             ItemDivider()
@@ -238,6 +247,31 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(16.dp))
         AppInfoFooter()
+    }
+
+    if (showRateUsDialog) {
+        RateUsDialog(
+            onDismiss = { showRateUsDialog = false },
+            onSubmit = { rating ->
+                showRateUsDialog = false
+                if (rating >= 4) {
+                    val packageName = context.packageName
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        context.startActivity(intent)
+                    } catch (_: Exception) {
+                        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        try {
+                            context.startActivity(webIntent)
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+        )
     }
 }
 
